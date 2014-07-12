@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="font_size_time">28sp</dimen>
+    <dimen name="font_size_time">27sp</dimen>
     <dimen name="font_size_date">12sp</dimen>
+    <dimen name="time_vert_offset">9dp</dimen>
+    <dimen name="hour_center_offset">40dp</dimen><!-- dist to hour container center from watch center on 213.333 x 213.333 dp square -->
+    <dimen name="second_center_offset">40dp</dimen><!-- dist to second container center from watch center on 213.333 x 213.333 dp square -->
+    <dimen name="date_center_offset">41dp</dimen><!-- dist to date container center from watch center on 213.333 x 213.333 dp square -->
 </resources>

@@ -13,6 +13,7 @@ import android.widget.ImageView;
 
 import com.twotoasters.chron.R;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import butterknife.ButterKnife;
@@ -28,6 +29,7 @@ public class Watchface extends FrameLayout implements IWatchface {
     @InjectView(R.id.hand_second)       ImageView handSecond;
 
     private Paint hourTimePaint, minTimePaint, datePaint;
+    private SimpleDateFormat sdfDate;
 
     private Watch mWatch;
 
@@ -57,16 +59,18 @@ public class Watchface extends FrameLayout implements IWatchface {
 
         minTimePaint = new Paint();
         minTimePaint.setAntiAlias(true);
-        minTimePaint.setColor(res.getColor(R.color.teal));
         minTimePaint.setTextAlign(Align.CENTER);
         minTimePaint.setTextSize(res.getDimension(R.dimen.font_size_time));
         minTimePaint.setTypeface(loadTypeface(R.string.font_share_tech_mono_regular));
 
         hourTimePaint = new Paint(minTimePaint);
-        hourTimePaint.setColor(res.getColor(R.color.orange));
 
         datePaint = new Paint(minTimePaint);
         datePaint.setTextSize(res.getDimension(R.dimen.font_size_date));
+
+        sdfDate = new SimpleDateFormat("MMM dd");
+
+        setColorResources();
     }
 
     @DebugLog
@@ -94,6 +98,32 @@ public class Watchface extends FrameLayout implements IWatchface {
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
+        drawTime(canvas, mWatch.getTime(), mWatch.is24HourModeEnabled());
+    }
+
+    public void drawTime(Canvas canvas, Calendar time, boolean is24Hour) {
+        Resources res = getResources();
+        int cx = getWidth() / 2, cy = getHeight() / 2;
+
+        int hr = is24Hour ? time.get(Calendar.HOUR) : time.get(Calendar.HOUR) % 12;
+        int min = time.get(Calendar.MINUTE);
+        int sec = time.get(Calendar.SECOND);
+
+        // TODO: need to multiply all of these values by the scale factor (widthInPx / 213.333)
+        float vertOffset = res.getDimension(R.dimen.time_vert_offset);
+        float hourOffset = res.getDimension(R.dimen.hour_center_offset);
+        float secondOffset = res.getDimension(R.dimen.hour_center_offset);
+        float dateOffset = res.getDimension(R.dimen.date_center_offset);
+
+        canvas.drawText(twoDigitNum(hr), cx - hourOffset, cy + vertOffset, hourTimePaint);
+        canvas.drawText(twoDigitNum(min), cx, cy + vertOffset, minTimePaint);
+        canvas.drawText(twoDigitNum(sec), cx + secondOffset, cy + vertOffset, minTimePaint); // TODO: evaluate what to do when not active
+
+        canvas.drawText(sdfDate.format(time.getTimeInMillis()).toUpperCase(), cx, cy + dateOffset, datePaint);
+    }
+
+    private String twoDigitNum(int num) {
+        return String.format("%02d", num);
     }
 
     private void rotateHands(int hour, int minute, int second) {
@@ -123,6 +153,7 @@ public class Watchface extends FrameLayout implements IWatchface {
     public void onActiveStateChanged(boolean active) {
         this.mActive = active;
         setImageResources();
+        setColorResources();
     }
 
     @DebugLog
@@ -134,6 +165,14 @@ public class Watchface extends FrameLayout implements IWatchface {
             handSecond.setImageResource(mActive ? R.drawable.hand_second_normal : R.drawable.hand_second_dimmed);
             handSecond.setVisibility(mActive ? View.VISIBLE : View.INVISIBLE);
         }
+    }
+
+    @DebugLog
+    private void setColorResources() {
+        Resources res = getResources();
+        hourTimePaint.setColor(res.getColor(mActive ? R.color.orange : R.color.white));
+        minTimePaint.setColor(res.getColor(mActive ? R.color.teal : R.color.white));
+        datePaint.setColor(res.getColor(mActive ? R.color.teal : R.color.white));
     }
 
     private Typeface loadTypeface(int typefaceNameResId) {

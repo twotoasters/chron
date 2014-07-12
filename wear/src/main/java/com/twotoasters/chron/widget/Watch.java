@@ -199,6 +199,10 @@ public class Watch {
         return mFormat24;
     }
 
+    public Calendar getTime() {
+        return mTime;
+    }
+
     /**
      * <p>Specifies the formatting pattern used to display the date and/or time
      * in 24-hour mode. The formatting pattern syntax is described in
