@@ -7,11 +7,12 @@ import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.view.View;
+import android.util.Pair;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.twotoasters.chron.R;
+import com.twotoasters.watchface.gears.util.DeviceUtils;
 import com.twotoasters.watchface.gears.widget.IWatchface;
 import com.twotoasters.watchface.gears.widget.Watch;
 
@@ -113,15 +114,17 @@ public class Watchface extends FrameLayout implements IWatchface {
         int min = time.get(Calendar.MINUTE);
         int sec = time.get(Calendar.SECOND);
 
-        // TODO: need to multiply all of these values by the scale factor (widthInPx / 213.333)
-        float vertOffset = res.getDimension(R.dimen.time_vert_offset);
-        float hourOffset = res.getDimension(R.dimen.hour_center_offset);
-        float secondOffset = res.getDimension(R.dimen.hour_center_offset);
-        float dateOffset = res.getDimension(R.dimen.date_center_offset);
+        Pair<Float, Float> screenDimensDp = DeviceUtils.getScreenDimensDp(getContext());
+        float offsetScale = screenDimensDp.first / 186.666f;
+
+        float vertOffset = res.getDimension(R.dimen.time_vert_offset) * offsetScale;
+        float hourOffset = res.getDimension(R.dimen.hour_center_offset) * offsetScale;
+        float secondOffset = res.getDimension(R.dimen.hour_center_offset) * offsetScale;
+        float dateOffset = res.getDimension(R.dimen.date_center_offset) * offsetScale;
 
         canvas.drawText((is24Hour ? sdfHour24 : sdfHour12).format(time.getTimeInMillis()), cx - hourOffset, cy + vertOffset, hourTimePaint);
         canvas.drawText(twoDigitNum(min), cx, cy + vertOffset, minTimePaint);
-        canvas.drawText(twoDigitNum(sec), cx + secondOffset, cy + vertOffset, minTimePaint); // TODO: evaluate what to do when not active
+        canvas.drawText(twoDigitNum(sec), cx + secondOffset, cy + vertOffset, minTimePaint);
 
         canvas.drawText(sdfDate.format(time.getTimeInMillis()).toUpperCase(), cx, cy + dateOffset, datePaint);
     }
@@ -168,10 +171,18 @@ public class Watchface extends FrameLayout implements IWatchface {
     @DebugLog
     private void setImageResources() {
         if (mInflated) {
-            face.setImageResource(mActive ? R.drawable.watch_bg_normal : R.drawable.watch_bg_dimmed);
-            handHour.setImageResource(mActive ? R.drawable.hand_hour_normal : R.drawable.hand_hour_dimmed);
-            handMinute.setImageResource(mActive ? R.drawable.hand_minute_normal : R.drawable.hand_minute_dimmed);
-            handSecond.setImageResource(mActive ? R.drawable.hand_second_normal : R.drawable.hand_second_dimmed);
+            if (mActive) {
+                face.setImageResource(R.drawable.watch_bg_normal);
+                handHour.setImageResource(R.drawable.hand_hour_normal);
+                handMinute.setImageResource(R.drawable.hand_minute_normal);
+                handSecond.setImageResource(R.drawable.hand_second_normal);
+            } else {
+                boolean hasAmoled = DeviceUtils.hasAmoledScreen();
+                face.setImageResource(hasAmoled ? R.drawable.watch_bg_dimmed_amoled : R.drawable.watch_bg_dimmed);
+                handHour.setImageResource(hasAmoled ? R.drawable.hand_hour_dimmed_amoled : R.drawable.hand_hour_dimmed);
+                handMinute.setImageResource(hasAmoled ? R.drawable.hand_minute_dimmed_amoled : R.drawable.hand_minute_dimmed);
+                handSecond.setImageResource(hasAmoled ? R.drawable.hand_second_dimmed_amoled : R.drawable.hand_second_dimmed);
+            }
         }
     }
 
