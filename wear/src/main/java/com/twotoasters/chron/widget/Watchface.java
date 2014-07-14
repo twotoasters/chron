@@ -151,6 +151,11 @@ public class Watchface extends FrameLayout implements IWatchface {
     }
 
     @Override
+    public boolean handleSecondsInDimMode() {
+        return true;
+    }
+
+    @Override
     @DebugLog
     public void onActiveStateChanged(boolean active) {
         this.mActive = active;
