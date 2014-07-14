@@ -172,7 +172,6 @@ public class Watchface extends FrameLayout implements IWatchface {
             handHour.setImageResource(mActive ? R.drawable.hand_hour_normal : R.drawable.hand_hour_dimmed);
             handMinute.setImageResource(mActive ? R.drawable.hand_minute_normal : R.drawable.hand_minute_dimmed);
             handSecond.setImageResource(mActive ? R.drawable.hand_second_normal : R.drawable.hand_second_dimmed);
-            handSecond.setVisibility(mActive ? View.VISIBLE : View.INVISIBLE);
         }
     }
 
