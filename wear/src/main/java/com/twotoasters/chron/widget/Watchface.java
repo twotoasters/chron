@@ -182,6 +182,11 @@ public class Watchface extends FrameLayout implements IWatchface {
         hourTimePaint.setColor(res.getColor(mActive ? R.color.orange : R.color.white));
         minTimePaint.setColor(res.getColor(mActive ? R.color.teal : R.color.white));
         datePaint.setColor(res.getColor(mActive ? R.color.teal : R.color.white));
+
+        float shadowRadius = mActive ? res.getDimension(R.dimen.text_shadow_radius) : 0f;
+        hourTimePaint.setShadowLayer(shadowRadius, 0, 0, res.getColor(R.color.orange_shadow));
+        minTimePaint.setShadowLayer(shadowRadius, 0, 0, res.getColor(R.color.teal_shadow));
+        datePaint.setShadowLayer(shadowRadius, 0, 0, res.getColor(R.color.teal_shadow));
     }
 
     private Typeface loadTypeface(int typefaceNameResId) {
