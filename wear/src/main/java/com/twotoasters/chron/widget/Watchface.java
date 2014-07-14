@@ -31,6 +31,7 @@ public class Watchface extends FrameLayout implements IWatchface {
     @InjectView(R.id.hand_second)       ImageView handSecond;
 
     private Paint hourTimePaint, minTimePaint, datePaint;
+    private SimpleDateFormat sdfHour12, sdfHour24;
     private SimpleDateFormat sdfDate;
 
     private Watch mWatch;
@@ -70,6 +71,8 @@ public class Watchface extends FrameLayout implements IWatchface {
         datePaint = new Paint(minTimePaint);
         datePaint.setTextSize(res.getDimension(R.dimen.font_size_date));
 
+        sdfHour12 = new SimpleDateFormat("hh");
+        sdfHour24 = new SimpleDateFormat("HH");
         sdfDate = new SimpleDateFormat("MMM dd");
 
         setColorResources();
@@ -107,7 +110,6 @@ public class Watchface extends FrameLayout implements IWatchface {
         Resources res = getResources();
         int cx = getWidth() / 2, cy = getHeight() / 2;
 
-        int hr = is24Hour ? time.get(Calendar.HOUR) : time.get(Calendar.HOUR) % 12;
         int min = time.get(Calendar.MINUTE);
         int sec = time.get(Calendar.SECOND);
 
@@ -117,7 +119,7 @@ public class Watchface extends FrameLayout implements IWatchface {
         float secondOffset = res.getDimension(R.dimen.hour_center_offset);
         float dateOffset = res.getDimension(R.dimen.date_center_offset);
 
-        canvas.drawText(twoDigitNum(hr), cx - hourOffset, cy + vertOffset, hourTimePaint);
+        canvas.drawText((is24Hour ? sdfHour24 : sdfHour12).format(time.getTimeInMillis()), cx - hourOffset, cy + vertOffset, hourTimePaint);
         canvas.drawText(twoDigitNum(min), cx, cy + vertOffset, minTimePaint);
         canvas.drawText(twoDigitNum(sec), cx + secondOffset, cy + vertOffset, minTimePaint); // TODO: evaluate what to do when not active
 
