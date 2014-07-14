@@ -1,32 +1,17 @@
 package com.twotoasters.chron.activity;
 
-import android.app.Activity;
-import android.os.Bundle;
-
 import com.twotoasters.chron.R;
-import com.twotoasters.chron.widget.IWatchface;
-import com.twotoasters.chron.widget.Watchface;
+import com.twotoasters.watchface.gears.activity.GearsWatchfaceActivity;
+import com.twotoasters.watchface.gears.widget.IWatchface;
 
-public class WatchfaceActivity extends Activity {
-
-    private IWatchface watchface;
-
+public class WatchfaceActivity extends GearsWatchfaceActivity {
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.watchface);
-        watchface = (Watchface) findViewById(R.id.watchface);
+    protected int getLayoutResId() {
+        return R.layout.watchface;
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        watchface.onActiveStateChanged(true);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        watchface.onActiveStateChanged(false);
+    protected IWatchface getWatchface() {
+        return (IWatchface) findViewById(R.id.watchface);
     }
 }

@@ -7,20 +7,16 @@
     android:layout_height="match_parent"
     tools:context=".WatchfaceActivity">
 
-    <ImageView style="@style/WatchLayer"
-        android:id="@+id/face"
-        android:src="@drawable/watch_bg_normal"/>
+    <ImageView style="@style/GearsWatchLayer"
+        android:id="@+id/face"/>
 
-    <ImageView style="@style/WatchLayer.Hand"
-        android:id="@+id/hand_hour"
-        android:src="@drawable/hand_hour_normal"/>
+    <ImageView style="@style/GearsWatchLayer.Hand"
+        android:id="@+id/hand_hour"/>
 
-    <ImageView style="@style/WatchLayer.Hand"
-        android:id="@+id/hand_minute"
-        android:src="@drawable/hand_minute_normal"/>
+    <ImageView style="@style/GearsWatchLayer.Hand"
+        android:id="@+id/hand_minute"/>
 
-    <ImageView style="@style/WatchLayer.Hand"
-        android:id="@+id/hand_second"
-        android:src="@drawable/hand_second_normal"/>
+    <ImageView style="@style/GearsWatchLayer.Hand"
+        android:id="@+id/hand_second"/>
 
 </com.twotoasters.chron.widget.Watchface>

@@ -12,6 +12,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.twotoasters.chron.R;
+import com.twotoasters.watchface.gears.widget.IWatchface;
+import com.twotoasters.watchface.gears.widget.Watch;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
