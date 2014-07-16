@@ -8,6 +8,7 @@ import android.graphics.Paint.Align;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Pair;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -124,7 +125,7 @@ public class Watchface extends FrameLayout implements IWatchface {
 
         canvas.drawText((is24Hour ? sdfHour24 : sdfHour12).format(time.getTimeInMillis()), cx - hourOffset, cy + vertOffset, hourTimePaint);
         canvas.drawText(twoDigitNum(min), cx, cy + vertOffset, minTimePaint);
-        canvas.drawText(twoDigitNum(sec), cx + secondOffset, cy + vertOffset, minTimePaint);
+        canvas.drawText(mActive ? twoDigitNum(sec) : "--", cx + secondOffset, cy + vertOffset, minTimePaint);
 
         canvas.drawText(sdfDate.format(time.getTimeInMillis()).toUpperCase(), cx, cy + dateOffset, datePaint);
     }
@@ -157,7 +158,7 @@ public class Watchface extends FrameLayout implements IWatchface {
 
     @Override
     public boolean handleSecondsInDimMode() {
-        return true;
+        return false;
     }
 
     @Override
@@ -183,6 +184,7 @@ public class Watchface extends FrameLayout implements IWatchface {
                 handMinute.setImageResource(hasAmoled ? R.drawable.hand_minute_dimmed_amoled : R.drawable.hand_minute_dimmed);
                 handSecond.setImageResource(hasAmoled ? R.drawable.hand_second_dimmed_amoled : R.drawable.hand_second_dimmed);
             }
+            handSecond.setVisibility(mActive ? View.VISIBLE : View.GONE);
         }
     }
 
