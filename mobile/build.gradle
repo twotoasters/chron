@@ -50,7 +50,6 @@ android {
 }
 
 dependencies {
-    compile 'com.google.android.gms:play-services-wearable:+'
     wearApp project(':wear')
 }
 
