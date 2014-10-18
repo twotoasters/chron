@@ -7,7 +7,6 @@ import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.util.Pair;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -115,8 +114,8 @@ public class Watchface extends FrameLayout implements IWatchface {
         int min = time.get(Calendar.MINUTE);
         int sec = time.get(Calendar.SECOND);
 
-        Pair<Float, Float> screenDimensDp = DeviceUtils.getScreenDimensDp(getContext());
-        float offsetScale = screenDimensDp.first / 186.666f;
+        float[] screenDimensDp = DeviceUtils.getScreenDimensDp(getContext());
+        float offsetScale = screenDimensDp[0] / 186.666f;
 
         float vertOffset = res.getDimension(R.dimen.time_vert_offset) * offsetScale;
         float hourOffset = res.getDimension(R.dimen.hour_center_offset) * offsetScale;
