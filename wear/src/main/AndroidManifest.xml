@@ -8,25 +8,24 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
-        android:label="${appName}"
-        android:name=".WatchfaceApp">
+        android:label="${appName}">
 
-        <!--<activity-->
-            <!--android:theme="@android:style/Theme.DeviceDefault.NoActionBar"-->
-            <!--android:name=".activity.WatchfaceActivity"-->
-            <!--android:label="${watchfaceName}"-->
-            <!--android:allowEmbedded="true" >-->
+        <activity
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
+            android:name=".activity.WatchfaceActivity"
+            android:label="${watchfaceName}"
+            android:allowEmbedded="true" >
 
-            <!--<meta-data android:name="com.google.android.clockwork.home.preview" android:resource="@drawable/preview" />-->
+            <meta-data android:name="com.google.android.clockwork.home.preview" android:resource="@drawable/preview" />
 
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN" />-->
-                <!--<category android:name="com.google.android.clockwork.home.category.HOME_BACKGROUND" />-->
-            <!--</intent-filter>-->
-        <!--</activity>-->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.google.android.clockwork.home.category.HOME_BACKGROUND" />
+            </intent-filter>
+        </activity>
 
         <service
-            android:name=".ChronWatchFace"
+            android:name=".service.WatchService"
             android:allowEmbedded="true"
             android:enabled="true"
             android:label="${watchfaceName}"

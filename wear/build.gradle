@@ -1,6 +1,6 @@
 buildscript {
     dependencies {
-        classpath 'com.jakewharton.hugo:hugo-plugin:1.1.0'
+        classpath 'com.jakewharton.hugo:hugo-plugin:1.1.+'
     }
 }
 
@@ -61,10 +61,9 @@ android {
 }
 
 dependencies {
-    compile 'com.google.android.support:wearable:1.0.00'
+    compile project(':common')
     compile project(':submodules:watchface-gears:library')
-    compile 'com.jakewharton:butterknife:5.1.+'
-    compile 'com.jakewharton.timber:timber:2.4.+'
+    compile 'com.google.android.support:wearable:1.0.00'
 }
 
 //apply from: 'https://raw.github.com/twotoasters/HelloAndroidStudio/master/gradle/keystore.gradle'

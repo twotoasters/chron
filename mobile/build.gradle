@@ -1,4 +1,11 @@
+buildscript {
+    dependencies {
+        classpath 'com.jakewharton.hugo:hugo-plugin:1.1.+'
+    }
+}
+
 apply plugin: 'com.android.application'
+apply plugin: 'hugo'
 
 def versionMajor = Integer.parseInt(APP_VERSION_MAJOR)
 def versionMinor = Integer.parseInt(APP_VERSION_MINOR)
@@ -50,7 +57,9 @@ android {
 }
 
 dependencies {
+    compile project(':common')
     wearApp project(':wear')
+    compile 'com.android.support:support-annotations:21.0.0'
 }
 
-apply from: 'https://raw.github.com/twotoasters/HelloAndroidStudio/master/gradle/keystore.gradle'
+//apply from: 'https://raw.github.com/twotoasters/HelloAndroidStudio/master/gradle/keystore.gradle'
