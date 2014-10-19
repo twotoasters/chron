@@ -2,5 +2,7 @@
 <resources>
     <string name="wallpaper_title">Chron</string>
     <string name="wallpaper_title_gl">Chron GL</string>
+    <string name="wallpaper_title_instruments_gl">Instruments GL</string>
     <string name="wallpaper_desc">A live wallpaper similar to the Chron watchface</string>
+    <string name="wallpaper_desc_instru">A live wallpaper similar aviator instruments</string>
 </resources>
