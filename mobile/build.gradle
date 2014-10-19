@@ -57,8 +57,9 @@ android {
 }
 
 dependencies {
-    compile project(':common')
     wearApp project(':wear')
+    compile project(':common')
+    compile files('libs/GLWallpaperService.jar')
     compile 'com.android.support:support-annotations:21.0.0'
 }
 

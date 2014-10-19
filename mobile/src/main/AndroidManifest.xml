@@ -23,6 +23,22 @@
             </meta-data>
         </service>
 
+        <service
+            android:name=".ChronLiveWallpaperGL"
+            android:enabled="true"
+            android:label="@string/wallpaper_title_gl"
+            android:permission="android.permission.BIND_WALLPAPER" >
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" >
+                </action>
+            </intent-filter>
+
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/chron_wallpaper" >
+            </meta-data>
+        </service>
+
     </application>
 
 </manifest>
