@@ -11,37 +11,39 @@
         android:label="${appName}">
 
         <activity
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
-            android:name=".activity.WatchfaceActivity"
-            android:label="${watchfaceName}"
-            android:allowEmbedded="true" >
-
-            <meta-data android:name="com.google.android.clockwork.home.preview" android:resource="@drawable/preview" />
-
+            android:name=".activity.ChronWatchFaceConfigActivity"
+            android:label="@string/config_label">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="com.google.android.clockwork.home.category.HOME_BACKGROUND" />
+                <action android:name="com.example.android.wearable.watchface.CONFIG_CHRON" />
+                <category android:name="com.google.android.wearable.watchface.category.WEARABLE_CONFIGURATION" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
+        <meta-data android:name="com.google.android.gms.version"
+               android:value="@integer/google_play_services_version" />
+
         <service
-            android:name=".service.WatchService"
+            android:name=".service.ChronWatchFaceService"
             android:allowEmbedded="true"
-            android:enabled="true"
             android:label="${watchfaceName}"
             android:taskAffinity=""
             android:permission="android.permission.BIND_WALLPAPER">
             <meta-data
-                android:name="com.google.android.clockwork.home.preview"
+                android:name="android.service.wallpaper"
+                android:resource="@xml/watch_face" />
+            <meta-data
+                android:name="com.google.android.wearable.watchface.preview"
                 android:resource="@drawable/preview" />
             <meta-data
-                android:name="android.service.wallpaper"
-                android:resource="@xml/dummy" />
+                android:name="com.google.android.wearable.watchface.companionConfigurationAction"
+                android:value="com.example.android.wearable.watchface.CONFIG_CHRON" />
+            <meta-data
+                android:name="com.google.android.wearable.watchface.wearableConfigurationAction"
+                android:value="com.example.android.wearable.watchface.CONFIG_CHRON" />
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
-                <action android:name="android.intent.action.MAIN" />
-                ￼￼          <category
-                android:name="com.google.android.wearable.watchface.category.HOME_BACKGROUND" />
+                <category android:name="com.google.android.wearable.watchface.category.WATCH_FACE" />
             </intent-filter>
         </service>
 
