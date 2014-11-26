@@ -94,9 +94,9 @@ public class ChronRenderer implements Renderer {
     }
 
     private void setColorResources() {
-        hourPaint.setColor(res.getColor(active ? com.twotoasters.chron.common.R.color.orange : com.twotoasters.chron.common.R.color.white));
-        minuteSecondPaint.setColor(res.getColor(active ? com.twotoasters.chron.common.R.color.teal : com.twotoasters.chron.common.R.color.white));
-        datePaint.setColor(res.getColor(active ? com.twotoasters.chron.common.R.color.teal : com.twotoasters.chron.common.R.color.white));
+        hourPaint.setColor(res.getColor(active ? com.twotoasters.chron.common.R.color.orange : android.R.color.white));
+        minuteSecondPaint.setColor(res.getColor(active ? com.twotoasters.chron.common.R.color.teal : android.R.color.white));
+        datePaint.setColor(res.getColor(active ? com.twotoasters.chron.common.R.color.teal : android.R.color.white));
 
         float shadowRadius = active ? 24f : 0f;
         hourPaint.setShadowLayer(shadowRadius, 0, 0, res.getColor(com.twotoasters.chron.common.R.color.orange_shadow));

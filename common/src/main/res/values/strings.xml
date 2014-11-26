@@ -1,4 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="font_share_tech_mono_regular">fonts/ShareTechMono-Regular.ttf</string>
+
+    <string name="color_red">Red</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_yellow">Yellow</string>
+    <string name="color_green">Green</string>
+    <string name="color_cyan">Cyan</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_navy">Navy</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_black">Black</string>
+    <string name="color_gray">Gray</string>
+    <string name="color_white">White</string>
+
+    <string-array name="color_array">
+        <item>@string/color_red</item>
+        <item>@string/color_orange</item>
+        <item>@string/color_yellow</item>
+        <item>@string/color_green</item>
+        <item>@string/color_cyan</item>
+        <item>@string/color_blue</item>
+        <item>@string/color_navy</item>
+        <item>@string/color_purple</item>
+        <item>@string/color_black</item>
+        <item>@string/color_gray</item>
+        <item>@string/color_white</item>
+    </string-array>
 </resources>

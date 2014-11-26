@@ -15,16 +15,31 @@ import android.provider.Settings;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
+import android.view.WindowInsets;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.Wearable;
+import com.twotoasters.chron.common.ChronConfigUtil;
 import com.twotoasters.chron.common.ChronWatch;
+import com.twotoasters.chron.common.Constants;
+import com.twotoasters.chron.common.Utils;
 
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 public class ChronWatchFaceService extends CanvasWatchFaceService {
 
+    private static final String TAG = ChronWatchFaceService.class.getSimpleName();
     private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(1);
 
     @Override
@@ -32,7 +47,8 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
         return new WatchfaceEngine();
     }
 
-    class WatchfaceEngine extends Engine {
+    class WatchfaceEngine extends Engine implements DataApi.DataListener,
+            GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
         private static final int MSG_UPDATE_TIME = 0;
 
@@ -86,6 +102,8 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
         };
         boolean mRegisteredFormatChangeObserver = false;
 
+        GoogleApiClient mGoogleApiClient;
+
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
          * disable anti-aliasing in ambient mode.
@@ -105,6 +123,12 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
                     .setViewProtection(WatchFaceStyle.PROTECT_HOTWORD_INDICATOR | WatchFaceStyle.PROTECT_STATUS_BAR)
                     .setShowSystemUiTime(false)
                     .build());
+
+            mGoogleApiClient = new GoogleApiClient.Builder(getApplicationContext())
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(Wearable.API)
+                    .build();
         }
 
         @Override
@@ -134,24 +158,38 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
             }
         }
 
-        // TODO: what does this do?
         @Override
         public void onInterruptionFilterChanged(int interruptionFilter) {
             super.onInterruptionFilterChanged(interruptionFilter);
             boolean inMuteMode = (interruptionFilter == WatchFaceService.INTERRUPTION_FILTER_NONE);
             if (mMute != inMuteMode) {
                 mMute = inMuteMode;
-//                mHourPaint.setAlpha(inMuteMode ? 100 : 255);
-//                mMinutePaint.setAlpha(inMuteMode ? 100 : 255);
-//                mSecondPaint.setAlpha(inMuteMode ? 80 : 255);
+                // TODO: add alpha to certain elements
                 invalidate();
             }
         }
 
         @Override
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            Utils.logd("onSurfaceChanged(%d, %d)", width, height);
+            super.onSurfaceChanged(holder, format, width, height);
+        }
+
+        @Override
+        public void onApplyWindowInsets(WindowInsets insets) {
+            int flatTireHeight = insets.getStableInsetBottom();
+            Log.d(TAG, "onApplyWindowInsets: " + (insets.isRound() ? "round" + (flatTireHeight > 0 ? " w/ flat tire of height " + flatTireHeight : "") : "square"));
+            if (flatTireHeight > 0 && insets.isRound()) {
+                int[] screenDimens = Utils.getScreenDimensPx(getApplicationContext());
+                int maxDimen = Math.max(screenDimens[0], screenDimens[1]);
+                chronWatch.setSize(maxDimen, maxDimen);
+            }
+        }
+
+
+        @Override
         public void onDraw(Canvas canvas) {
             chronWatch.setTime(System.currentTimeMillis());
-
             chronWatch.draw(canvas);
 
             // Draw every frame as long as we're visible.
@@ -165,6 +203,9 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
             super.onVisibilityChanged(visible);
 
             if (visible) {
+                Utils.logd("became visible");
+                mGoogleApiClient.connect();
+
                 registerReceiver();
                 registerObserver();
 
@@ -176,9 +217,15 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
                 invalidate(); // for sweepSeconds
                 //mUpdateTimeHandler.sendEmptyMessage(MSG_UPDATE_TIME); // for ticking seconds
             } else {
+                Utils.logd("became invisible");
                 mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
                 unregisterReceiver();
                 unregisterObserver();
+
+                if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+                    Wearable.DataApi.removeListener(mGoogleApiClient, this);
+                    mGoogleApiClient.disconnect();
+                }
             }
         }
 
@@ -215,6 +262,105 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
             mRegisteredFormatChangeObserver = false;
             final ContentResolver resolver = ChronWatchFaceService.this.getContentResolver();
             resolver.unregisterContentObserver(mFormatChangeObserver);
+        }
+
+        @Override
+        public void onConnected(Bundle connectionHint) {
+            Log.d(TAG, "onConnected: " + connectionHint);
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+            }
+            Wearable.DataApi.addListener(mGoogleApiClient, this);
+            updateConfigDataItemAndUiOnStartup();
+        }
+
+        @Override
+        public void onConnectionSuspended(int cause) {
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "onConnectionSuspended: " + cause);
+            }
+        }
+
+        @Override
+        public void onConnectionFailed(ConnectionResult result) {
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "onConnectionFailed: " + result);
+            }
+        }
+
+        private void updateConfigDataItemAndUiOnStartup() {
+            Utils.logd("updateConfigDataItemAndUiOnStartup()");
+            ChronConfigUtil.fetchConfigDataMap(mGoogleApiClient,
+                    new ChronConfigUtil.FetchConfigDataMapCallback() {
+                        @Override
+                        public void onConfigDataMapFetched(DataMap startupConfig) {
+                            // If the DataItem hasn't been created yet or some keys are missing, use the default values.
+                            boolean addedKey = setDefaultValuesForMissingConfigKeys(startupConfig);
+                            if (addedKey) {
+                                ChronConfigUtil.putConfigDataItem(mGoogleApiClient, startupConfig);
+                            }
+
+                            updateUiForConfigDataMap(startupConfig);
+                        }
+                    }
+            );
+        }
+
+        @Override
+        public void onDataChanged(DataEventBuffer dataEvents) {
+            for (DataEvent dataEvent : dataEvents) {
+                if (dataEvent.getType() != DataEvent.TYPE_CHANGED) {
+                    continue;
+                }
+
+                DataItem dataItem = dataEvent.getDataItem();
+                if (!dataItem.getUri().getPath().equals(Constants.PATH_WITH_FEATURE)) {
+                    continue;
+                }
+
+                DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
+                DataMap config = dataMapItem.getDataMap();
+                Log.d(TAG, "Config DataItem updated:" + config);
+                if (Log.isLoggable(TAG, Log.DEBUG)) {
+                }
+                updateUiForConfigDataMap(config);
+            }
+        }
+
+        private void updateUiForConfigDataMap(final DataMap config) {
+            boolean uiUpdated = false;
+            for (String configKey : config.keySet()) {
+                if (!config.containsKey(configKey)) {
+                    continue;
+                }
+                int color = config.getInt(configKey);
+                Log.d(TAG, "Found watch face config key: " + configKey + " -> " + Integer.toHexString(color));
+                if (Log.isLoggable(TAG, Log.DEBUG)) {
+                }
+                if (chronWatch.updateUiForKey(configKey, color)) {
+                    uiUpdated = true;
+                }
+            }
+            if (uiUpdated) {
+                invalidate();
+            }
+        }
+
+        // Returns true if we added a missing key; otherwise, false
+        private boolean setDefaultValuesForMissingConfigKeys(DataMap config) {
+            boolean addedKey = false;
+            addedKey |= addIntKeyIfMissing(config, Constants.KEY_PRIMARY_COLOR, Constants.DEFAULT_PRIMARY_COLOR);
+            addedKey |= addIntKeyIfMissing(config, Constants.KEY_ACCENT_COLOR, Constants.DEFAULT_ACCENT_COLOR);
+            return addedKey;
+        }
+
+        // Returns true if we added a missing key; otherwise, false
+        private boolean addIntKeyIfMissing(DataMap config, String key, int color) {
+            boolean addedKey = false;
+            if (!config.containsKey(key)) {
+                config.putInt(key, color);
+                addedKey = true;
+            }
+            return addedKey;
         }
     }
 }

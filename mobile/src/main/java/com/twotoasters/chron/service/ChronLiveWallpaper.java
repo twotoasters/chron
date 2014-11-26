@@ -1,4 +1,4 @@
-package com.twotoasters.chron;
+package com.twotoasters.chron.service;
 
 import android.graphics.Canvas;
 import android.os.Handler;

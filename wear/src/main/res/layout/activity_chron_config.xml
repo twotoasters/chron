@@ -1,26 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+<android.support.wearable.view.BoxInsetLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#ffffff">
+    android:layout_width="match_parent"
+    android:background="@color/settings_bg_color">
 
-    <TextView
-        android:id="@+id/header"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="14dp"
-        android:gravity="center_horizontal"
-        android:textSize="22sp"
-        android:textColor="#a2a2a2"
-        android:text="@string/config_hour_color"
-        android:fontFamily="sans-serif-condensed-light"/>
-
-    <android.support.wearable.view.WearableListView
-        android:id="@+id/color_list"
-        android:layout_width="match_parent"
+    <FrameLayout
+        android:id="@+id/frame_layout"
         android:layout_height="match_parent"
-        android:background="@android:color/transparent"/>
+        android:layout_width="match_parent"
+        app:layout_box="left|bottom|right">
 
-</LinearLayout>
+        <android.support.wearable.view.WearableListView
+            android:id="@+id/color_list"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"/>
+
+    </FrameLayout>
+
+</android.support.wearable.view.BoxInsetLayout>

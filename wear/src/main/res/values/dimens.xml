@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="config_color_item_margin">32dp</dimen>
+    <dimen name="animation_range">60dp</dimen>
+    <dimen name="wearable_list_item_height">65dp</dimen>
+    <dimen name="default_settings_circle_radius">37dp</dimen>
+    <dimen name="selected_settings_circle_radius">50dp</dimen>
 </resources>

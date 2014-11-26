@@ -1,4 +1,4 @@
-package com.twotoasters.chron;
+package com.twotoasters.chron.service;
 
 import com.twotoasters.chron.gl.ChronRenderer;
 

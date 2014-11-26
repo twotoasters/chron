@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/text"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/wearable_list_item_height"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    android:gravity="center_vertical"
+    android:fontFamily="sans-serif-condensed-light"
+    android:textColor="@color/white"
+    android:textSize="22sp"
+    android:text="Header"
+    android:alpha="0.5"/>

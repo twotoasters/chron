@@ -5,30 +5,35 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Style;
+import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.SweepGradient;
+import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.Time;
+import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
 public class ChronWatch {
 
-    private static final int[] orangeGradientColors = new int[]{Color.TRANSPARENT, Color.parseColor("#2e2a1d"), Color.parseColor("#796125"), Color.parseColor("#dcaf2f"), Color.parseColor("#ffbe35")};
-    private static final int[] tealGradientColors = new int[]{Color.TRANSPARENT, Color.parseColor("#14292b"), Color.parseColor("#1b6165"), Color.parseColor("#1db9bd"), Color.parseColor("#04ffff")};
-    private static final int[] grayGradientColors = new int[]{Color.TRANSPARENT, Color.parseColor("#070707"), Color.parseColor("#1a1a1a"), Color.parseColor("#404040"), Color.parseColor("#7f7f7f")};
+    private static final String TAG = ChronWatch.class.getSimpleName();
 
     private static final String FORMAT_12_HOUR = "hh";
     private static final String FORMAT_24_HOUR = "HH";
     private static final String FORMAT_DATE = "MMM dd";
 
+    private Path hourOutlinePath;
     private Paint bitmapPaint, hourTimePaint, minTimePaint, datePaint;
     private Paint hourRingPaint, minRingPaint, secRingPaint;
+    private Paint outerMajorTickPaint, outerMinorTickPaint, innerMajorTickPaint, innerMinorTickPaint;
+    private Paint hourOutlinePaint;
     private SimpleDateFormat sdfHour12, sdfHour24;
     private SimpleDateFormat sdfDate;
 
@@ -42,13 +47,16 @@ public class ChronWatch {
     private boolean visible = true;
     private boolean interactive = true;
     private boolean is24HourMode = false;
+    private boolean isRound = false;
 
     // TODO: implement amoled state
     // TODO: implement screen burn-in protection
 
+    private int primaryColor, accentColor;
     private Bitmap background;
 
     private float hourRingThickness, minuteSecondRingThickness, ringShadowSize;
+    private float outerTickInnerRadius, outerMajorTickLength, outerMinorTickLength, innerTickInnerRadius, innerMajorTickLength, innerMinorTickLength;
 
     private RectF hourRingBounds, minuteRingBounds, secondRingBounds;
 
@@ -65,10 +73,14 @@ public class ChronWatch {
 
     public ChronWatch(Context context, boolean sweepSeconds, int width, int height) {
         this.sweepSeconds = sweepSeconds;
-        setSize(width, height);
+        this.width = width;
+        this.height = height;
 
         appContext = context.getApplicationContext();
         res = appContext.getResources();
+
+        primaryColor = res.getColor(R.color.teal);
+        accentColor = res.getColor(R.color.orange);
 
         time = new Time();
         is24HourMode = DateFormat.is24HourFormat(appContext);
@@ -85,13 +97,15 @@ public class ChronWatch {
 
         hourTimePaint = new Paint(minTimePaint);
 
+        hourOutlinePaint = new Paint(hourTimePaint);
+        hourOutlinePaint.setStyle(Style.STROKE);
+
         datePaint = new Paint(minTimePaint);
         datePaint.setTextSize(res.getDimension(R.dimen.font_size_date));
 
         hourRingPaint = new Paint(hourTimePaint);
         hourRingPaint.setStrokeCap(Cap.ROUND);
         hourRingPaint.setStyle(Style.STROKE);
-        hourRingPaint.setStrokeWidth(hourRingThickness);
 
         minRingPaint = new Paint(minTimePaint);
         minRingPaint.setStrokeCap(Cap.ROUND);
@@ -100,21 +114,34 @@ public class ChronWatch {
 
         secRingPaint = new Paint(minRingPaint);
 
+        outerMajorTickPaint = new Paint(hourRingPaint);
+        outerMinorTickPaint = new Paint(outerMajorTickPaint);
+        innerMajorTickPaint = new Paint(minRingPaint);
+        innerMinorTickPaint = new Paint(innerMajorTickPaint);
+
         sdfHour12 = new SimpleDateFormat(FORMAT_12_HOUR);
         sdfHour24 = new SimpleDateFormat(FORMAT_24_HOUR);
         sdfDate = new SimpleDateFormat(FORMAT_DATE);
 
-        loadImageResources();
+        calculateDimensions();
         setColorResources();
+        loadImageResources();
     }
 
     private void calculateDimensions() {
         float smallestDimen = Math.min(width, height);
         float outerTickMarkLength = smallestDimen * 0.0406f;
         float ringSpacing = smallestDimen * 0.0188f;
+
         ringShadowSize = smallestDimen * 0.0107f;
         hourRingThickness = smallestDimen * 0.0188f;
         minuteSecondRingThickness = smallestDimen * 0.0125f;
+
+        hourRingPaint.setStrokeWidth(hourRingThickness);
+        minRingPaint.setStrokeWidth(minuteSecondRingThickness);
+        secRingPaint.setStrokeWidth(minuteSecondRingThickness);
+
+        hourOutlinePaint.setStrokeWidth(smallestDimen * 0.003125f);
 
         hourRingBounds = new RectF(0, 0, width, height);
         hourRingBounds.inset(outerTickMarkLength + ringSpacing / 2f, outerTickMarkLength + ringSpacing / 2f);
@@ -122,64 +149,173 @@ public class ChronWatch {
         minuteRingBounds = new RectF(hourRingBounds);
         minuteRingBounds.inset(hourRingThickness + ringSpacing, hourRingThickness + ringSpacing);
 
+        ringSpacing += smallestDimen * .00625f;
         secondRingBounds = new RectF(minuteRingBounds);
         secondRingBounds.inset(minuteSecondRingThickness + ringSpacing, minuteSecondRingThickness + ringSpacing);
+
+        outerTickInnerRadius = 0.9643f;
+        outerMajorTickLength = smallestDimen * 0.025f;
+        outerMinorTickLength = smallestDimen * 0.025f;
+        innerTickInnerRadius = 0.6786f;
+        innerMajorTickLength = smallestDimen * 0.0125f;
+        innerMinorTickLength = smallestDimen * 0.0125f;
+
+        outerMajorTickPaint.setStrokeWidth(smallestDimen * 0.00938f);
+        outerMinorTickPaint.setStrokeWidth(smallestDimen * 0.00938f);
+        innerMajorTickPaint.setStrokeWidth(smallestDimen * 0.00625f);
+        innerMinorTickPaint.setStrokeWidth(smallestDimen * 0.00313f);
+
+        hourOutlinePath = createHourOutlinePath();
     }
 
     private void loadImageResources() {
         int backgroundResId;
         if (interactive) {
-            backgroundResId =  R.drawable.watch_bg_normal;
+            backgroundResId =  R.drawable.watch_bg_normal_no_ticks_no_hour_grayscale;
         } else {
             boolean hasAmoled = Utils.hasAmoledScreen();
             backgroundResId = hasAmoled ? R.drawable.watch_bg_dimmed_amoled : R.drawable.watch_bg_dimmed;
         }
-        background = Utils.loadScaledBitmapRes(res, backgroundResId, width, height);
+        background = Utils.createColorizedImage(Utils.loadScaledBitmapRes(res, backgroundResId, width, height), getPrimaryColor());
+
     }
 
     private void setColorResources() {
         // Fill colors
-        hourTimePaint.setColor(res.getColor(interactive ? R.color.orange : R.color.white));
-        minTimePaint.setColor(res.getColor(interactive ? R.color.teal : R.color.white));
-        datePaint.setColor(res.getColor(interactive ? R.color.teal : R.color.white));
+        hourOutlinePaint.setColor(colorWithAlpha(getAccentColor(), 0.5f));
 
-        hourRingPaint.setColor(res.getColor(interactive ? R.color.orange : R.color.white));
-        minRingPaint.setColor(res.getColor(interactive ? R.color.teal : R.color.white));
-        secRingPaint.setColor(res.getColor(interactive ? R.color.teal : R.color.white));
+        hourTimePaint.setColor(getAccentColor());
+        minTimePaint.setColor(getPrimaryColor());
+        datePaint.setColor(getPrimaryColor());
 
-        // Shadow colors
+        hourRingPaint.setColor(getAccentColor());
+        minRingPaint.setColor(getPrimaryColor());
+        secRingPaint.setColor(getPrimaryColor());
+
+        outerMajorTickPaint.setColor(getAccentColor());
+        outerMinorTickPaint.setColor(colorWithAlpha(getAccentColor(), 0.25f));
+        innerMajorTickPaint.setColor(getPrimaryColor());
+        innerMinorTickPaint.setColor(colorWithAlpha(getPrimaryColor(), 0.25f));
+
+        // Shadow colors - // TODO: update shadow color relationship
         float shadowRadius = interactive ? res.getDimension(R.dimen.text_shadow_radius) : 0f;
-        hourTimePaint.setShadowLayer(shadowRadius, 0, 0, res.getColor(R.color.orange_shadow));
-        minTimePaint.setShadowLayer(shadowRadius, 0, 0, res.getColor(R.color.teal_shadow));
-        datePaint.setShadowLayer(shadowRadius, 0, 0, res.getColor(R.color.teal_shadow));
+        hourTimePaint.setShadowLayer(shadowRadius, 0, 0, colorForShadow(getAccentColor()));
+        minTimePaint.setShadowLayer(shadowRadius, 0, 0, colorForShadow(getPrimaryColor()));
+        datePaint.setShadowLayer(shadowRadius, 0, 0, colorForShadow(getPrimaryColor()));
 
         float ringShadowRadius = interactive ? ringShadowSize : 0f;
-        hourRingPaint.setShadowLayer(ringShadowRadius, 0, 0, res.getColor(R.color.orange_shadow));
-        minRingPaint.setShadowLayer(ringShadowRadius, 0, 0, res.getColor(R.color.teal_shadow));
-        secRingPaint.setShadowLayer(ringShadowRadius, 0, 0, res.getColor(R.color.teal_shadow));
+        hourRingPaint.setShadowLayer(ringShadowRadius, 0, 0, colorForShadow(getAccentColor()));
+        minRingPaint.setShadowLayer(ringShadowRadius, 0, 0, colorForShadow(getPrimaryColor()));
+        secRingPaint.setShadowLayer(ringShadowRadius, 0, 0, colorForShadow(getPrimaryColor()));
 
         // Gradient colors
-        hourRingPaint.setShader(newSweepGradient(interactive ? orangeGradientColors : grayGradientColors));
-        minRingPaint.setShader(newSweepGradient(interactive ? tealGradientColors : grayGradientColors));
-        secRingPaint.setShader(newSweepGradient(interactive ? tealGradientColors : grayGradientColors));
+        hourRingPaint.setShader(newSweepGradient(interactive ? getAccentColor() : colorWithAlpha(Color.WHITE, 0.55f)));
+        minRingPaint.setShader(newSweepGradient(interactive ? getPrimaryColor() : colorWithAlpha(Color.WHITE, 0.55f)));
+        secRingPaint.setShader(newSweepGradient(interactive ? getPrimaryColor() : colorWithAlpha(Color.WHITE, 0.55f)));
     }
 
-    private SweepGradient newSweepGradient(int[] gradientColors) {
-        float[] gradientPositions = new float[]{0.0f, 0.08f, 0.25f, 0.5f, 1.0f};
-        return new SweepGradient(width / 2, height / 2, gradientColors, gradientPositions);
+    private Path createHourOutlinePath() {
+        float smallestDimen = Math.min(width, height);
+        float w = smallestDimen * 0.175f;   // width of path
+        float h = smallestDimen * 0.1643f;  // height of path
+        float r = smallestDimen * 0.0107f;  // corner radius path rounded rect
+
+        Matrix matrix = new Matrix();
+        matrix.postTranslate(smallestDimen * 0.2f, smallestDimen * 0.4179f);
+
+        Path path = new Path();
+        path.moveTo(w - r, 0); // going CW from before top right curve
+        path.rCubicTo(r * 0.55f, 0, 0, r * 0.55f, r, r); // top right
+        path.lineTo(w, h * 0.25f);
+
+        path.rCubicTo(-r, 0, -r, h * 0.25f, 0, h * 0.25f);
+        path.rCubicTo(-r, 0, -r, h * 0.25f, 0, h * 0.25f);
+
+        path.lineTo(w, h - r);
+        path.rCubicTo(0, r * 0.55f, r * 0.55f, 0, -r, r); // bottom right
+        path.lineTo(r, h);
+        path.rCubicTo(-r * 0.55f, 0, 0, r * 0.55f, -r, -r); // bottom left
+        path.lineTo(0, r);
+        path.rCubicTo(0, -r * 0.55f, -r * 0.55f, 0, r, -r); // top left
+        path.close();
+
+        path.transform(matrix);
+        return path;
+    }
+
+    private SweepGradient newSweepGradient(int gradientColor) {
+        int transparentGradientColor = Color.argb(0, Color.red(gradientColor), Color.green(gradientColor), Color.blue(gradientColor));
+        return new SweepGradient(width / 2, height / 2, new int[]{transparentGradientColor, gradientColor}, new float[]{0f, 1f});
+    }
+
+    /**
+     * Updates the color of a UI item according to the given {@code configKey}. Does nothing if
+     * {@code configKey} isn't recognized.
+     *
+     * @return whether UI has been updated
+     */
+    public boolean updateUiForKey(String configKey, int color) {
+        boolean updated = false;
+        if (!TextUtils.isEmpty(configKey)) {
+            switch (configKey) {
+                case Constants.KEY_PRIMARY_COLOR:
+                    updated = this.primaryColor != color;
+                    setPrimaryColor(color);
+                    break;
+                case Constants.KEY_ACCENT_COLOR:
+                    updated = this.accentColor != color;
+                    setAccentColor(color);
+                    break;
+                default:
+                    Log.w(TAG, "Ignoring unknown config key: " + configKey);
+            }
+
+            if (updated) {
+                setColorResources();
+                loadImageResources();
+            }
+        }
+        return updated;
     }
 
     public void draw(Canvas canvas) {
         drawFace(canvas);
+        drawOuterTicks(canvas);
+        drawInnerTicks(canvas);
         drawHands(canvas);
+        drawTimeOutline(canvas);
         drawTime(canvas);
     }
 
     private void drawFace(Canvas canvas) {
         canvas.drawBitmap(background,
-                canvas.getWidth() / 2f - background.getWidth() / 2f,
-                canvas.getHeight() / 2f - background.getHeight() / 2f,
+                width / 2f - background.getWidth() / 2f,
+                height / 2f - background.getHeight() / 2f,
                 bitmapPaint);
+    }
+
+    private void drawOuterTicks(Canvas canvas) {
+        float cx = width / 2, cy = height / 2, r = cx;
+        for (int degrees = 0; degrees < 360; degrees += 15) {
+            boolean isMajor = degrees % 30 == 0;
+            float startX = cx + (r * outerTickInnerRadius);
+            canvas.save();
+            canvas.rotate(degrees, cx, cy);
+            canvas.drawLine(startX, cy, startX + (isMajor ? outerMajorTickLength : outerMinorTickLength), cy, (isMajor ? outerMajorTickPaint : outerMinorTickPaint));
+            canvas.restore();
+        }
+    }
+
+    private void drawInnerTicks(Canvas canvas) {
+        float cx = width / 2, cy = height / 2, r = cx;
+        for (int degrees = 0; degrees < 360; degrees += 6) {
+            boolean isMajor = degrees % 30 == 0;
+            float startX = cx + (r * innerTickInnerRadius);
+            canvas.save();
+            canvas.rotate(degrees, cx, cy);
+            canvas.drawLine(startX, cy, startX + (isMajor ? innerMajorTickLength : innerMinorTickLength), cy, (isMajor ? innerMajorTickPaint : innerMinorTickPaint));
+            canvas.restore();
+        }
     }
 
     private void drawHands(Canvas canvas) {
@@ -205,8 +341,14 @@ public class ChronWatch {
         canvas.restore();
     }
 
+    private void drawTimeOutline(Canvas canvas) {
+        if (interactive) {
+            canvas.drawPath(hourOutlinePath, hourOutlinePaint);
+        }
+    }
+
     private void drawTime(Canvas canvas) {
-        int cx = canvas.getWidth() / 2, cy = canvas.getHeight() / 2;
+        int cx = width / 2, cy = height / 2;
 
         int min = time.minute;
         int sec = time.second;
@@ -228,9 +370,13 @@ public class ChronWatch {
     }
 
     public void setSize(int width, int height) {
+        boolean sizeChanged = this.width != width || this.height != height;
         this.width = width;
         this.height = height;
-        calculateDimensions();
+        if (sizeChanged) {
+            calculateDimensions();
+            loadImageResources();
+        }
     }
 
     public void setTime(long now) {
@@ -265,8 +411,44 @@ public class ChronWatch {
         boolean updateResources = this.interactive != interactive;
         this.interactive = interactive;
         if (updateResources) {
-            loadImageResources();
             setColorResources();
+            loadImageResources();
         }
+    }
+
+    public void setRound(boolean isRound) {
+        this.isRound = isRound;
+    }
+
+    public int getPrimaryColor() {
+        return interactive ? primaryColor : Color.WHITE;
+    }
+
+    public void setPrimaryColor(int primaryColor) {
+        this.primaryColor = primaryColor;
+    }
+
+    private int getAccentColor() {
+        return interactive ? accentColor : Color.WHITE;
+    }
+
+    public void setAccentColor(int accentColor) {
+        this.accentColor = accentColor;
+    }
+
+    private int colorForShadow(int color) {
+        float[] hsv = new float[3];
+        hsv[1] *= 0.5f;
+        hsv[2] *= 0.75f;
+        Color.colorToHSV(color, hsv);
+        return Color.HSVToColor(179, hsv);
+    }
+
+    public int colorWithAlpha(int color, float factor) {
+        int alpha = Math.round(255 * factor);
+        int red = Color.red(color);
+        int green = Color.green(color);
+        int blue = Color.blue(color);
+        return Color.argb(alpha, red, green, blue);
     }
 }

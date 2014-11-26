@@ -3,8 +3,13 @@ package com.twotoasters.chron.common;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
@@ -20,7 +25,7 @@ public class Utils {
     private static final String TAG = "Chron";
     private static final ArrayList<String> AMOLED_MODELS;
     static {
-        AMOLED_MODELS = new ArrayList<String>();
+        AMOLED_MODELS = new ArrayList<>();
         AMOLED_MODELS.add("Gear Live");
     }
 
@@ -29,25 +34,30 @@ public class Utils {
     }
 
     public static Bitmap loadScaledBitmapRes(Resources res, @DrawableRes int resId, int containerWidth, int containerHeight) {
-        assertTrue(containerWidth > 0 && containerHeight > 0, "Container dimensions must both be greater than 0");
-
         Bitmap bitmap = BitmapFactory.decodeResource(res, resId);
-
-        assertTrue(bitmap != null, "Bitmap from resource is null");
-        assertTrue(bitmap.getWidth() > 0 && bitmap.getHeight() > 0, "Bitmap from resource has size dimension of 0");
+        if (containerWidth == bitmap.getWidth() && containerHeight == bitmap.getHeight()) {
+            return bitmap;
+        }
 
         float xScale = containerWidth / (float) bitmap.getWidth();
         float yScale = containerHeight / (float) bitmap.getHeight();
         float scale = Math.min(xScale, yScale);
 
-        logd("contWidth: %s | contHeight: %s", String.valueOf(containerWidth), String.valueOf(containerHeight));
-        logd("bitmapWidth: %s | bitmapHeight: %s", String.valueOf(bitmap.getWidth()), String.valueOf(bitmap.getHeight()));
-        logd("xScale: %s | yScale: %s", String.valueOf(xScale), String.valueOf(yScale));
-
         Matrix matrix = new Matrix();
         matrix.postScale(scale, scale);
 
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+    }
+
+    public static Bitmap createColorizedImage(Bitmap grayscale, int color) {
+        Paint paint = new Paint(color);
+        ColorFilter filter = new LightingColorFilter(color, 1);
+        paint.setColorFilter(filter);
+
+        Bitmap bitmap = Bitmap.createBitmap(grayscale.getWidth(), grayscale.getHeight(), Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawBitmap(grayscale, 0, 0, paint);
+        return bitmap;
     }
 
     @NonNull
@@ -80,4 +90,6 @@ public class Utils {
     private static void assertTrue(boolean condition, String errorMessage) {
         if (!condition) throw new AssertionError(errorMessage);
     }
+
+    private Utils() { }
 }
