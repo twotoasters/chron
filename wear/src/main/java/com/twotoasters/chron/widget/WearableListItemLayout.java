@@ -1,6 +1,7 @@
 package com.twotoasters.chron.widget;
 
 import android.content.Context;
+import android.support.wearable.view.CircledImageView;
 import android.support.wearable.view.WearableListView.OnCenterProximityListener;
 import android.util.AttributeSet;
 import android.widget.ImageView;
@@ -11,11 +12,7 @@ import com.twotoasters.chron.R;
 
 public class WearableListItemLayout extends LinearLayout implements OnCenterProximityListener {
 
-    private final float mFadedTextAlpha;
-    private final int mFadedCircleColor;
-    private final int mChosenCircleColor;
-    private ImageView mCircle;
-    private float mScale;
+    private CircledImageView mCircle;
     private TextView mName;
 
     public WearableListItemLayout(Context context) {
@@ -28,29 +25,39 @@ public class WearableListItemLayout extends LinearLayout implements OnCenterProx
 
     public WearableListItemLayout(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        mFadedTextAlpha = getResources().getInteger(R.integer.action_text_faded_alpha) / 100f;
-        mFadedCircleColor = getResources().getColor(R.color.grey);
-        mChosenCircleColor = getResources().getColor(R.color.blue);
+        inflate(getContext(), R.layout.widget_wearable_list_item, this);
     }
 
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        mCircle = (ImageView) findViewById(R.id.circle);
+        mCircle = (CircledImageView) findViewById(R.id.circle);
         mName = (TextView) findViewById(R.id.name);
     }
 
     // OnCenterProximityListener
 
     @Override
-    public void onCenterPosition(boolean b) {
-        mCircle.animate().alpha(1f).scaleX(1.6f);
-        mName.animate().alpha(1f);
+    public void onCenterPosition(boolean animate) {
+        if (animate) {
+            mCircle.animate().scaleX(1.4f).scaleY(1.4f);
+            mName.animate().alpha(1f);
+        } else {
+            mCircle.setScaleX(1.4f);
+            mCircle.setScaleY(1.4f);
+            mName.setAlpha(1f);
+        }
     }
 
     @Override
-    public void onNonCenterPosition(boolean b) {
-        mCircle.animate().alpha(0.6f).scaleX(1f);
-        mName.animate().alpha(0.6f);
+    public void onNonCenterPosition(boolean animate) {
+        if (animate) {
+            mCircle.animate().scaleX(1f).scaleY(1f);
+            mName.animate().alpha(0.6f);
+        } else {
+            mCircle.setScaleX(1f);
+            mCircle.setScaleY(1f);
+            mName.setAlpha(0.6f);
+        }
     }
 }

@@ -4,4 +4,30 @@
     <color name="teal_shadow">#bf41afb2</color>
     <color name="orange">#ffbe35</color>
     <color name="orange_shadow">#bfff9000</color>
+
+    <color name="color_red">#ff0000</color>
+    <color name="color_orange">#ffbe35</color>
+    <color name="color_yellow">#ffff00</color>
+    <color name="color_green">#00ff00</color>
+    <color name="color_cyan">#04ffff</color>
+    <color name="color_blue">#0000ff</color>
+    <color name="color_navy">#00007f</color>
+    <color name="color_purple">#7f007f</color>
+    <color name="color_black">#000000</color>
+    <color name="color_gray">#4c4c4c</color>
+    <color name="color_white">#ffffff</color>
+
+    <array name="color_array">
+        <item>@color/color_red</item>
+        <item>@color/color_orange</item>
+        <item>@color/color_yellow</item>
+        <item>@color/color_green</item>
+        <item>@color/color_cyan</item>
+        <item>@color/color_blue</item>
+        <item>@color/color_navy</item>
+        <item>@color/color_purple</item>
+        <item>@color/color_black</item>
+        <item>@color/color_gray</item>
+        <item>@color/color_white</item>
+    </array>
 </resources>

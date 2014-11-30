@@ -127,8 +127,8 @@ public class ChronRenderer implements Renderer {
         millisecond = time.get(Calendar.MILLISECOND);
 
         mHourSprite.setValue(sdfHour12.format(time.getTimeInMillis()));
-        mMinuteSprite.setValue(Utils.twoDigitNum(minute));
-        mSecondSprite.setValue(Utils.twoDigitNum(second));
+        mMinuteSprite.setValue(Utils.formatTwoDigitNum(minute));
+        mSecondSprite.setValue(Utils.formatTwoDigitNum(second));
     }
 
     private void drawHands(GL10 gl) {

@@ -2,9 +2,9 @@ package com.twotoasters.chron.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView.OnScrollListener;
 import android.support.wearable.view.WearableListView;
-import android.util.Log;
+import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -13,13 +13,13 @@ import com.google.android.gms.wearable.Wearable;
 import com.twotoasters.chron.R;
 import com.twotoasters.chron.adapter.ColorListAdapter;
 import com.twotoasters.chron.adapter.ColorListAdapter.ItemViewHolder;
-import com.twotoasters.chron.adapter.HeaderFooterListAdapter;
-import com.twotoasters.chron.common.ChronConfigUtil;
+import com.twotoasters.chron.common.ChronDataMapUtils;
 import com.twotoasters.chron.common.Constants;
+import com.twotoasters.chron.common.Utils;
 
-public class ChronWatchFaceWearConfigActivity extends Activity implements WearableListView.ClickListener {
+import timber.log.Timber;
 
-    private static final String TAG = "ChronWatchFace";
+public class ChronWearConfigActivity extends Activity implements WearableListView.ClickListener {
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -37,12 +37,10 @@ public class ChronWatchFaceWearConfigActivity extends Activity implements Wearab
         listView.setHasFixedSize(true);
         listView.setClickListener(this);
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        listView.setLayoutManager(layoutManager);
+        String[] colorNames = getResources().getStringArray(R.array.color_name_array);
 
-        String[] colors = getResources().getStringArray(R.array.color_array);
-        listView.setAdapter(new HeaderFooterListAdapter(new ColorListAdapter(colors), "Primary color"));
+        listView.setAdapter(new ColorListAdapter(colorNames));
+        listView.addOnScrollListener(new WearableHeaderScrollListener(findViewById(R.id.headerText)));
     }
 
     private void buildGoogleApiClient() {
@@ -50,24 +48,18 @@ public class ChronWatchFaceWearConfigActivity extends Activity implements Wearab
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
                     public void onConnected(Bundle connectionHint) {
-                        if (Log.isLoggable(TAG, Log.DEBUG)) {
-                            Log.d(TAG, "onConnected: " + connectionHint);
-                        }
+                        Timber.d("onConnected: " + connectionHint);
                     }
 
                     @Override
                     public void onConnectionSuspended(int cause) {
-                        if (Log.isLoggable(TAG, Log.DEBUG)) {
-                            Log.d(TAG, "onConnectionSuspended: " + cause);
-                        }
+                        Timber.d("onConnectionSuspended: " + cause);
                     }
                 })
                 .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(ConnectionResult result) {
-                        if (Log.isLoggable(TAG, Log.DEBUG)) {
-                            Log.d(TAG, "onConnectionFailed: " + result);
-                        }
+                        Timber.d("onConnectionFailed: " + result);
                     }
                 })
                 .addApi(Wearable.API)
@@ -92,19 +84,48 @@ public class ChronWatchFaceWearConfigActivity extends Activity implements Wearab
     public void onClick(WearableListView.ViewHolder viewHolder) {
         ItemViewHolder colorItemViewHolder = (ItemViewHolder) viewHolder;
         String colorName = colorItemViewHolder.name.getText().toString();
-        updateConfigDataItem(Constants.colorForName(colorName));
-        Log.d(TAG, "selected color from config: " + colorName);
+        updateConfigDataItem(Utils.colorForName(this, colorName));
+        Timber.d("selected background color from config: " + colorName);
         finish();
     }
 
     private void updateConfigDataItem(final int primaryColor) {
         DataMap configKeysToOverwrite = new DataMap();
         configKeysToOverwrite.putInt(Constants.KEY_PRIMARY_COLOR, primaryColor);
-        ChronConfigUtil.overwriteKeysInConfigDataMap(mGoogleApiClient, configKeysToOverwrite);
+        ChronDataMapUtils.overwriteKeysInConfigDataMap(mGoogleApiClient, configKeysToOverwrite);
     }
 
     @Override
     public void onTopEmptyRegionClick() {
         // no op
+    }
+
+    static class WearableHeaderScrollListener extends OnScrollListener implements WearableListView.OnScrollListener {
+
+        private View headerView;
+
+        WearableHeaderScrollListener(View headerView) {
+            this.headerView = headerView;
+        }
+
+        @Override
+        public void onScroll(int dy) {
+            headerView.setTranslationY(headerView.getTranslationY() - dy);
+        }
+
+        @Override
+        public void onAbsoluteScrollChange(int i) {
+            // no op
+        }
+
+        @Override
+        public void onScrollStateChanged(int i) {
+            // no op
+        }
+
+        @Override
+        public void onCentralPositionChanged(int i) {
+            // no op
+        }
     }
 }

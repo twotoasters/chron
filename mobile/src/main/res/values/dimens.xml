@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="activity_margin_horizontal">16dp</dimen>
+    <dimen name="settings_item_height">64dp</dimen>
+    <dimen name="settings_item_padding_horizontal">16dp</dimen>
+    <dimen name="settings_color_circle_size">40dp</dimen>
+    <dimen name="settings_color_circle_radius">20dp</dimen>
+    <dimen name="settings_item_color_circle_size">20dp</dimen>
+    <dimen name="settings_item_color_circle_radius">10dp</dimen>
+    <dimen name="divider_height">1dp</dimen>
+</resources>

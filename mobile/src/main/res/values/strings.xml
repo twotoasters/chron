@@ -4,6 +4,13 @@
     <string name="wallpaper_title_gl">Chron GL</string>
     <string name="wallpaper_desc">A live wallpaper similar to the Chron watchface</string>
 
+    <string name="primary_color">Primary color</string>
+    <string name="accent_color">Accent color</string>
+    <string name="choose">Choose</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="acknowledgements">Acknowledgements</string>
+
     <string name="title_no_device_connected">No wearable device is currently connected.</string>
     <string name="ok_no_device_connected">OK</string>
 </resources>

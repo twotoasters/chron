@@ -2,6 +2,7 @@
 <android.support.wearable.view.BoxInsetLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
     android:background="@color/settings_bg_color">
@@ -16,6 +17,19 @@
             android:id="@+id/color_list"
             android:layout_height="match_parent"
             android:layout_width="match_parent"/>
+
+        <android.support.wearable.view.WearableHeaderTextView
+            android:id="@+id/headerText"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/wearable_list_item_height"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:gravity="center_vertical"
+            android:fontFamily="sans-serif-condensed-light"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:alpha="0.5"
+            android:text="@string/color"/>
 
     </FrameLayout>
 

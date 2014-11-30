@@ -7,10 +7,12 @@
 
     <application android:allowBackup="true"
         android:icon="@drawable/icon"
-        android:label="${appName}">
+        android:label="${appName}"
+        android:name=".ChronApp"
+        android:theme="@style/AppTheme">
 
         <activity
-            android:name=".activity.ChronWatchFaceCompanionConfigActivity"
+            android:name=".activity.ChronCompanionConfigActivity"
             android:label="${appName}">
             <intent-filter>
                 <action android:name="com.twotoasters.chron.CONFIG_CHRON" />
@@ -22,37 +24,37 @@
         <meta-data android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <service
-            android:name=".service.ChronLiveWallpaper"
-            android:enabled="true"
-            android:label="@string/wallpaper_title"
-            android:permission="android.permission.BIND_WALLPAPER" >
-            <intent-filter>
-                <action android:name="android.service.wallpaper.WallpaperService" >
-                </action>
-            </intent-filter>
+        <!--<service-->
+            <!--android:name=".service.ChronLiveWallpaper"-->
+            <!--android:enabled="true"-->
+            <!--android:label="@string/wallpaper_title"-->
+            <!--android:permission="android.permission.BIND_WALLPAPER" >-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.service.wallpaper.WallpaperService" >-->
+                <!--</action>-->
+            <!--</intent-filter>-->
 
-            <meta-data
-                android:name="android.service.wallpaper"
-                android:resource="@xml/chron_wallpaper" >
-            </meta-data>
-        </service>
+            <!--<meta-data-->
+                <!--android:name="android.service.wallpaper"-->
+                <!--android:resource="@xml/chron_wallpaper" >-->
+            <!--</meta-data>-->
+        <!--</service>-->
 
-        <service
-            android:name=".service.ChronLiveWallpaperGL"
-            android:enabled="true"
-            android:label="@string/wallpaper_title_gl"
-            android:permission="android.permission.BIND_WALLPAPER" >
-            <intent-filter>
-                <action android:name="android.service.wallpaper.WallpaperService" >
-                </action>
-            </intent-filter>
+        <!--<service-->
+            <!--android:name=".service.ChronLiveWallpaperGL"-->
+            <!--android:enabled="true"-->
+            <!--android:label="@string/wallpaper_title_gl"-->
+            <!--android:permission="android.permission.BIND_WALLPAPER" >-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.service.wallpaper.WallpaperService" >-->
+                <!--</action>-->
+            <!--</intent-filter>-->
 
-            <meta-data
-                android:name="android.service.wallpaper"
-                android:resource="@xml/chron_wallpaper" >
-            </meta-data>
-        </service>
+            <!--<meta-data-->
+                <!--android:name="android.service.wallpaper"-->
+                <!--android:resource="@xml/chron_wallpaper" >-->
+            <!--</meta-data>-->
+        <!--</service>-->
 
     </application>
 

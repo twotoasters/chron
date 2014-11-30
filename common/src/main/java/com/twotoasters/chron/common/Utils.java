@@ -2,40 +2,40 @@ package com.twotoasters.chron.common;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.util.DisplayMetrics;
-import android.util.Log;
 
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+import timber.log.Timber;
 
 public class Utils {
 
-    private static final String TAG = "Chron";
-    private static final ArrayList<String> AMOLED_MODELS;
-    static {
-        AMOLED_MODELS = new ArrayList<>();
-        AMOLED_MODELS.add("Gear Live");
-    }
+    public static Map<String, Integer> colorMap;
 
-    public static boolean hasAmoledScreen() {
-        return AMOLED_MODELS.contains(Build.MODEL);
-    }
+    // Loads a bitmap scaled according to its aspect ratio so that its largest dimension fits within the provided container width
+    public static Bitmap loadScaledBitmapRes(Resources res, @DrawableRes int resId, float containerWidth, float containerHeight) {
+        BitmapFactory.Options options = new Options();
+        options.inScaled = false;
+        Bitmap bitmap = BitmapFactory.decodeResource(res, resId, options);
 
-    public static Bitmap loadScaledBitmapRes(Resources res, @DrawableRes int resId, int containerWidth, int containerHeight) {
-        Bitmap bitmap = BitmapFactory.decodeResource(res, resId);
-        if (containerWidth == bitmap.getWidth() && containerHeight == bitmap.getHeight()) {
+        if ((bitmap.getWidth() <= Math.round(containerWidth) && bitmap.getHeight() <= Math.round(containerHeight))
+                && (bitmap.getWidth() == containerWidth || bitmap.getHeight() == containerHeight)) {
             return bitmap;
         }
 
@@ -51,6 +51,7 @@ public class Utils {
 
     public static Bitmap createColorizedImage(Bitmap grayscale, int color) {
         Paint paint = new Paint(color);
+        //ColorFilter filter = new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN);
         ColorFilter filter = new LightingColorFilter(color, 1);
         paint.setColorFilter(filter);
 
@@ -58,14 +59,6 @@ public class Utils {
         Canvas canvas = new Canvas(bitmap);
         canvas.drawBitmap(grayscale, 0, 0, paint);
         return bitmap;
-    }
-
-    @NonNull
-    public static float[] getScreenDimensDp(Context context) {
-        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
-        float dpHeight = displayMetrics.heightPixels / displayMetrics.density;
-        return new float[]{ dpWidth, dpHeight };
     }
 
     @NonNull
@@ -79,16 +72,67 @@ public class Utils {
         return Typeface.createFromAsset(context.getAssets(), typefaceName);
     }
 
-    public static String twoDigitNum(int num) {
+    public static int colorForName(Context context, String colorName) {
+        Integer bgColor = getColorMap(context).get(colorName);
+        if (bgColor != null) {
+            return bgColor;
+        } else {
+            Timber.w("Invalid background color name, using default");
+            return context.getResources().getColor(R.color.color_cyan);
+        }
+    }
+
+    private static Map<String, Integer> getColorMap(Context context) {
+        if (colorMap == null) {
+            String[] colorNames = context.getResources().getStringArray(R.array.color_name_array);
+            TypedArray ta = context.getResources().obtainTypedArray(R.array.color_array);
+
+            if (colorNames.length != ta.length()) {
+                throw new AssertionError("Background color and color name arrays must have the same length");
+            }
+
+            colorMap = new HashMap<>();
+            for (int i = 0; i < ta.length(); i++) {
+                int color = ta.getColor(i, 0);
+                colorMap.put(colorNames[i], color);
+            }
+            ta.recycle();
+        }
+        return colorMap;
+    }
+
+    public static String formatTwoDigitNum(int num) {
         return String.format("%02d", num);
     }
 
-    public static void logd(String text, Object... objects) {
-        Log.d(TAG, String.format(text, objects));
+    public static String toTimeText(long timestampMillis, boolean is24HourMode) {
+        String formatString = is24HourMode ? "H:mm" : "h:mma";
+        String timeText = new SimpleDateFormat(formatString).format(timestampMillis);
+        if (!is24HourMode) {
+            timeText = timeText.toLowerCase().substring(0, timeText.length() - 1);
+        }
+        return timeText;
     }
 
-    private static void assertTrue(boolean condition, String errorMessage) {
-        if (!condition) throw new AssertionError(errorMessage);
+    public static String debugTime(long timestampMillis) {
+        return new SimpleDateFormat("hh:mm:ss").format(timestampMillis);
+    }
+
+    public static float degreesToRadians(float degrees) {
+        return degrees * (float) Math.PI / 180f;
+    }
+
+    public static float radiansToDegrees(float radians) {
+        return radians * 180f / (float) Math.PI;
+    }
+
+    // TODO: need to use still?
+    @NonNull
+    public static float[] getScreenDimensDp(Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+        float dpHeight = displayMetrics.heightPixels / displayMetrics.density;
+        return new float[]{ dpWidth, dpHeight };
     }
 
     private Utils() { }

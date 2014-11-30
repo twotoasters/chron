@@ -25,13 +25,13 @@ import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
-import com.twotoasters.chron.common.ChronConfigUtil;
+import com.twotoasters.chron.common.ChronDataMapUtils;
 import com.twotoasters.chron.common.Constants;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * A {@link com.google.android.gms.wearable.WearableListenerService} listening for {@link DigitalWatchFaceService} config messages and
+ * A {@link com.google.android.gms.wearable.WearableListenerService} listening for config messages and
  * updating the config {@link com.google.android.gms.wearable.DataItem} accordingly.
  */
 public class ChronWatchFaceConfigListenerService extends WearableListenerService
@@ -42,7 +42,7 @@ public class ChronWatchFaceConfigListenerService extends WearableListenerService
 
     @Override // WearableListenerService
     public void onMessageReceived(MessageEvent messageEvent) {
-        if (!messageEvent.getPath().equals(Constants.PATH_WITH_FEATURE)) {
+        if (!messageEvent.getPath().equals(Constants.CONFIG_PATH)) {
             return;
         }
         byte[] rawData = messageEvent.getData();
@@ -67,7 +67,7 @@ public class ChronWatchFaceConfigListenerService extends WearableListenerService
             }
         }
 
-        ChronConfigUtil.overwriteKeysInConfigDataMap(mGoogleApiClient, configKeysToOverwrite);
+        ChronDataMapUtils.overwriteKeysInConfigDataMap(mGoogleApiClient, configKeysToOverwrite);
     }
 
     @Override // GoogleApiClient.ConnectionCallbacks

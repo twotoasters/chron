@@ -12,10 +12,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
-import android.support.wearable.watchface.WatchFaceService;
+import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
@@ -29,13 +28,15 @@ import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
-import com.twotoasters.chron.common.ChronConfigUtil;
+import com.twotoasters.chron.common.ChronDataMapUtils;
 import com.twotoasters.chron.common.ChronWatch;
 import com.twotoasters.chron.common.Constants;
 import com.twotoasters.chron.common.Utils;
 
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+
+import timber.log.Timber;
 
 public class ChronWatchFaceService extends CanvasWatchFaceService {
 
@@ -51,9 +52,6 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
             GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
         private static final int MSG_UPDATE_TIME = 0;
-
-        boolean mAmbient;
-        boolean mMute;
 
         private ChronWatch chronWatch;
 
@@ -133,13 +131,38 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
 
         @Override
         public void onDestroy() {
+            mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             super.onDestroy();
+        }
+
+        @Override
+        public void onApplyWindowInsets(WindowInsets insets) {
+            int flatTireHeight = insets.getStableInsetBottom();
+            boolean isRound = insets.isRound();
+            Timber.d("onApplyWindowInsets: " + (isRound ? "round" + (flatTireHeight > 0 ? " w/ flat tire of height " + flatTireHeight : "") : "square"));
+            chronWatch.setRound(isRound);
+            if (flatTireHeight > 0 && isRound) {
+                int[] screenDimens = Utils.getScreenDimensPx(getApplicationContext());
+                int maxDimen = Math.max(screenDimens[0], screenDimens[1]);
+                chronWatch.setSize(maxDimen, maxDimen);
+            }
         }
 
         @Override
         public void onPropertiesChanged(Bundle properties) {
             super.onPropertiesChanged(properties);
             mLowBitAmbient = properties.getBoolean(PROPERTY_LOW_BIT_AMBIENT, false);
+
+            // TODO: implement this
+        }
+
+        @Override
+        public void onAmbientModeChanged(boolean inAmbientMode) {
+            super.onAmbientModeChanged(inAmbientMode);
+            if (chronWatch.isAmbient() != inAmbientMode) {
+                chronWatch.setAmbient(inAmbientMode); // TODO: implement this
+                invalidate();
+            }
         }
 
         @Override
@@ -147,45 +170,6 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
             super.onTimeTick();
             invalidate();
         }
-
-        @Override
-        public void onAmbientModeChanged(boolean inAmbientMode) {
-            super.onAmbientModeChanged(inAmbientMode);
-            if (mAmbient != inAmbientMode) {
-                mAmbient = inAmbientMode;
-                chronWatch.setInteractive(!mAmbient);
-                invalidate();
-            }
-        }
-
-        @Override
-        public void onInterruptionFilterChanged(int interruptionFilter) {
-            super.onInterruptionFilterChanged(interruptionFilter);
-            boolean inMuteMode = (interruptionFilter == WatchFaceService.INTERRUPTION_FILTER_NONE);
-            if (mMute != inMuteMode) {
-                mMute = inMuteMode;
-                // TODO: add alpha to certain elements
-                invalidate();
-            }
-        }
-
-        @Override
-        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            Utils.logd("onSurfaceChanged(%d, %d)", width, height);
-            super.onSurfaceChanged(holder, format, width, height);
-        }
-
-        @Override
-        public void onApplyWindowInsets(WindowInsets insets) {
-            int flatTireHeight = insets.getStableInsetBottom();
-            Log.d(TAG, "onApplyWindowInsets: " + (insets.isRound() ? "round" + (flatTireHeight > 0 ? " w/ flat tire of height " + flatTireHeight : "") : "square"));
-            if (flatTireHeight > 0 && insets.isRound()) {
-                int[] screenDimens = Utils.getScreenDimensPx(getApplicationContext());
-                int maxDimen = Math.max(screenDimens[0], screenDimens[1]);
-                chronWatch.setSize(maxDimen, maxDimen);
-            }
-        }
-
 
         @Override
         public void onDraw(Canvas canvas) {
@@ -203,7 +187,7 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
             super.onVisibilityChanged(visible);
 
             if (visible) {
-                Utils.logd("became visible");
+                Timber.d("became visible");
                 mGoogleApiClient.connect();
 
                 registerReceiver();
@@ -215,9 +199,8 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
                 chronWatch.set24HourModeEnabled(DateFormat.is24HourFormat(ChronWatchFaceService.this));
 
                 invalidate(); // for sweepSeconds
-                //mUpdateTimeHandler.sendEmptyMessage(MSG_UPDATE_TIME); // for ticking seconds
             } else {
-                Utils.logd("became invisible");
+                Timber.d("became invisible");
                 mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
                 unregisterReceiver();
                 unregisterObserver();
@@ -266,39 +249,31 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
 
         @Override
         public void onConnected(Bundle connectionHint) {
-            Log.d(TAG, "onConnected: " + connectionHint);
-            if (Log.isLoggable(TAG, Log.DEBUG)) {
-            }
+            Timber.d("onConnected: " + connectionHint);
             Wearable.DataApi.addListener(mGoogleApiClient, this);
             updateConfigDataItemAndUiOnStartup();
         }
 
         @Override
         public void onConnectionSuspended(int cause) {
-            if (Log.isLoggable(TAG, Log.DEBUG)) {
-                Log.d(TAG, "onConnectionSuspended: " + cause);
-            }
+            Timber.d("onConnectionSuspended: " + cause);
         }
 
         @Override
         public void onConnectionFailed(ConnectionResult result) {
-            if (Log.isLoggable(TAG, Log.DEBUG)) {
-                Log.d(TAG, "onConnectionFailed: " + result);
-            }
+            Timber.d("onConnectionFailed: " + result);
         }
 
         private void updateConfigDataItemAndUiOnStartup() {
-            Utils.logd("updateConfigDataItemAndUiOnStartup()");
-            ChronConfigUtil.fetchConfigDataMap(mGoogleApiClient,
-                    new ChronConfigUtil.FetchConfigDataMapCallback() {
+            ChronDataMapUtils.fetchConfigDataMap(mGoogleApiClient,
+                    new ChronDataMapUtils.FetchConfigDataMapCallback() {
                         @Override
                         public void onConfigDataMapFetched(DataMap startupConfig) {
                             // If the DataItem hasn't been created yet or some keys are missing, use the default values.
                             boolean addedKey = setDefaultValuesForMissingConfigKeys(startupConfig);
                             if (addedKey) {
-                                ChronConfigUtil.putConfigDataItem(mGoogleApiClient, startupConfig);
+                                ChronDataMapUtils.putConfigDataItem(mGoogleApiClient, startupConfig);
                             }
-
                             updateUiForConfigDataMap(startupConfig);
                         }
                     }
@@ -313,15 +288,13 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
                 }
 
                 DataItem dataItem = dataEvent.getDataItem();
-                if (!dataItem.getUri().getPath().equals(Constants.PATH_WITH_FEATURE)) {
+                if (!dataItem.getUri().getPath().equals(Constants.CONFIG_PATH)) {
                     continue;
                 }
 
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
                 DataMap config = dataMapItem.getDataMap();
-                Log.d(TAG, "Config DataItem updated:" + config);
-                if (Log.isLoggable(TAG, Log.DEBUG)) {
-                }
+                Timber.d("Config DataItem updated:" + config);
                 updateUiForConfigDataMap(config);
             }
         }
@@ -333,9 +306,7 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
                     continue;
                 }
                 int color = config.getInt(configKey);
-                Log.d(TAG, "Found watch face config key: " + configKey + " -> " + Integer.toHexString(color));
-                if (Log.isLoggable(TAG, Log.DEBUG)) {
-                }
+                Timber.d("Found watch face config key: " + configKey + " -> " + Integer.toHexString(color));
                 if (chronWatch.updateUiForKey(configKey, color)) {
                     uiUpdated = true;
                 }
@@ -348,8 +319,8 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
         // Returns true if we added a missing key; otherwise, false
         private boolean setDefaultValuesForMissingConfigKeys(DataMap config) {
             boolean addedKey = false;
-            addedKey |= addIntKeyIfMissing(config, Constants.KEY_PRIMARY_COLOR, Constants.DEFAULT_PRIMARY_COLOR);
-            addedKey |= addIntKeyIfMissing(config, Constants.KEY_ACCENT_COLOR, Constants.DEFAULT_ACCENT_COLOR);
+            addedKey |= addIntKeyIfMissing(config, Constants.KEY_PRIMARY_COLOR, Utils.colorForName(ChronWatchFaceService.this, getString(Constants.DEFAULT_PRIMARY_COLOR_NAME)));
+            addedKey |= addIntKeyIfMissing(config, Constants.KEY_ACCENT_COLOR, Utils.colorForName(ChronWatchFaceService.this, getString(Constants.DEFAULT_ACCENT_COLOR_NAME)));
             return addedKey;
         }
 

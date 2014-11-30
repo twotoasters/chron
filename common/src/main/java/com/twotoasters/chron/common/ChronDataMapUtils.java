@@ -15,9 +15,11 @@ import com.google.android.gms.wearable.NodeApi.GetLocalNodeResult;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.Wearable;
 
-public final class ChronConfigUtil {
+import timber.log.Timber;
 
-    private static final String TAG = ChronConfigUtil.class.getSimpleName();
+public final class ChronDataMapUtils {
+
+    private static final String TAG = ChronDataMapUtils.class.getSimpleName();
 
     /**
      * Asynchronously fetches the current config and passes it to the given callback.
@@ -26,20 +28,20 @@ public final class ChronConfigUtil {
      */
     public static void fetchConfigDataMap(final GoogleApiClient client,
             final FetchConfigDataMapCallback callback) {
-        Utils.logd("fetchConfigDataMap()");
+        Timber.d("fetchConfigDataMap()");
         Wearable.NodeApi.getLocalNode(client).setResultCallback(
                 new ResultCallback<GetLocalNodeResult>() {
                     @Override
                     public void onResult(NodeApi.GetLocalNodeResult getLocalNodeResult) {
-                        Utils.logd("fetchConfigDataMap - onResult()");
+                        Timber.d("fetchConfigDataMap - onResult()");
                         String localNode = getLocalNodeResult.getNode().getId();
                         Uri uri = new Uri.Builder()
                                 .scheme(Constants.SCHEME_WEAR)
-                                .path(Constants.PATH_WITH_FEATURE)
+                                .path(Constants.CONFIG_PATH)
                                 .authority(localNode)
                                 .build();
 
-                        Utils.logd("fetchConfigDataMap - onResult - getDataItem()");
+                        Timber.d("fetchConfigDataMap - onResult - getDataItem()");
                         Wearable.DataApi.getDataItem(client, uri)
                                 .setResultCallback(new DataItemResultCallback(callback));
                     }
@@ -55,16 +57,16 @@ public final class ChronConfigUtil {
      * {@code configKeysToOverwrite}. The rest of the keys remains unmodified in this case.
      */
     public static void overwriteKeysInConfigDataMap(final GoogleApiClient googleApiClient, final DataMap configKeysToOverwrite) {
-        Utils.logd("overwriteKeysInConfigDataMap()");
-        ChronConfigUtil.fetchConfigDataMap(googleApiClient,
-                new ChronConfigUtil.FetchConfigDataMapCallback() {
+        Timber.d("overwriteKeysInConfigDataMap()");
+        ChronDataMapUtils.fetchConfigDataMap(googleApiClient,
+                new ChronDataMapUtils.FetchConfigDataMapCallback() {
                     @Override
                     public void onConfigDataMapFetched(DataMap currentConfig) {
-                        Utils.logd("overwriteKeysInConfigDataMap - onConfigDataMapFetched()");
+                        Timber.d("overwriteKeysInConfigDataMap - onConfigDataMapFetched()");
                         DataMap overwrittenConfig = new DataMap();
                         overwrittenConfig.putAll(currentConfig);
                         overwrittenConfig.putAll(configKeysToOverwrite);
-                        ChronConfigUtil.putConfigDataItem(googleApiClient, overwrittenConfig);
+                        ChronDataMapUtils.putConfigDataItem(googleApiClient, overwrittenConfig);
                     }
                 }
         );
@@ -75,16 +77,16 @@ public final class ChronConfigUtil {
      * the config DataItem doesn't exist, it's created.
      */
     public static void putConfigDataItem(GoogleApiClient googleApiClient, DataMap newConfig) {
-        Utils.logd("putConfigDataItem()");
-        PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.PATH_WITH_FEATURE);
+        Timber.d("putConfigDataItem()");
+        PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CONFIG_PATH);
         DataMap configToPut = putDataMapRequest.getDataMap();
         configToPut.putAll(newConfig);
-        Utils.logd("putConfigDataItem - putDataItem()");
+        Timber.d("putConfigDataItem - putDataItem()");
         Wearable.DataApi.putDataItem(googleApiClient, putDataMapRequest.asPutDataRequest())
                 .setResultCallback(new ResultCallback<DataItemResult>() {
                     @Override
                     public void onResult(DataApi.DataItemResult dataItemResult) {
-                        Utils.logd("putConfigDataItem - putDataItem - onResult()");
+                        Timber.d("putConfigDataItem - putDataItem - onResult()");
                         Log.d(TAG, "putDataItem result status: " + dataItemResult.getStatus());
                     }
                 });
@@ -100,7 +102,7 @@ public final class ChronConfigUtil {
 
         @Override
         public void onResult(DataApi.DataItemResult dataItemResult) {
-            Utils.logd("DataItemResultCallback - onResult()");
+            Timber.d("DataItemResultCallback - onResult()");
             if (dataItemResult.getStatus().isSuccess()) {
                 if (dataItemResult.getDataItem() != null) {
                     DataItem configDataItem = dataItemResult.getDataItem();
@@ -118,5 +120,5 @@ public final class ChronConfigUtil {
         void onConfigDataMapFetched(DataMap config);
     }
 
-    private ChronConfigUtil() { }
+    private ChronDataMapUtils() { }
 }

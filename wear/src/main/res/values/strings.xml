@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="config_label">Chron watch face configuration</string>
-    <string name="config_hour_color">Hour color</string>
+
+    <string name="color">Color</string>
 </resources>
