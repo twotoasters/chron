@@ -25,12 +25,14 @@ android {
         manifestPlaceholders = [ watchfaceName:project.WATCHFACE_NAME, appName:project.APP_NAME ]
 
         applicationVariants.all { variant ->
-            def watchfaceName = project.WATCHFACE_NAME.replace(" ", "").toLowerCase()
-            def file = variant.outputFile
-            def suffix = defaultConfig.versionName
-            def outputFile = file.name.replace(".apk", "-" + suffix + ".apk")
-            outputFile = outputFile.replace("wear", watchfaceName)
-            variant.outputFile = new File(file.parent, outputFile)
+            variant.outputs.each { output ->
+                def watchfaceName = project.WATCHFACE_NAME.replace(" ", "").toLowerCase()
+                def file = output.outputFile
+                def suffix = defaultConfig.versionName
+                def outputFile = file.name.replace(".apk", "-" + suffix + ".apk")
+                outputFile = outputFile.replace("wear", watchfaceName)
+                output.outputFile = new File(file.parent, outputFile)
+            }
         }
     }
 
@@ -50,7 +52,7 @@ android {
 
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled false
             signingConfig signingConfigs.release
         }
     }
