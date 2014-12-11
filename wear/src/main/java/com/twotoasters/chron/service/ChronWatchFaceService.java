@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -40,7 +41,6 @@ import timber.log.Timber;
 
 public class ChronWatchFaceService extends CanvasWatchFaceService {
 
-    private static final String TAG = ChronWatchFaceService.class.getSimpleName();
     private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(1);
 
     @Override
@@ -172,7 +172,7 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
         }
 
         @Override
-        public void onDraw(Canvas canvas) {
+        public void onDraw(Canvas canvas, Rect bounds) {
             chronWatch.setTime(System.currentTimeMillis());
             chronWatch.draw(canvas);
 
@@ -190,8 +190,8 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
                 Timber.d("became visible");
                 mGoogleApiClient.connect();
 
-                registerReceiver();
-                registerObserver();
+                registerTimeZoneReceiver();
+                registerTimeFormatObserver();
 
                 // Update time zone in case it changed while we weren't visible.
                 chronWatch.clearTime(TimeZone.getDefault().getID());
@@ -202,8 +202,8 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
             } else {
                 Timber.d("became invisible");
                 mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
-                unregisterReceiver();
-                unregisterObserver();
+                unregisterTimeZoneReceiver();
+                unregisterTimeFormatObserver();
 
                 if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
                     Wearable.DataApi.removeListener(mGoogleApiClient, this);
@@ -212,7 +212,7 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
             }
         }
 
-        private void registerReceiver() {
+        private void registerTimeZoneReceiver() {
             if (mRegisteredTimeZoneReceiver) {
                 return;
             }
@@ -221,7 +221,7 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
             ChronWatchFaceService.this.registerReceiver(mTimeZoneReceiver, filter);
         }
 
-        private void unregisterReceiver() {
+        private void unregisterTimeZoneReceiver() {
             if (!mRegisteredTimeZoneReceiver) {
                 return;
             }
@@ -229,7 +229,7 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
             ChronWatchFaceService.this.unregisterReceiver(mTimeZoneReceiver);
         }
 
-        private void registerObserver() {
+        private void registerTimeFormatObserver() {
             if (mRegisteredFormatChangeObserver) {
                 return;
             }
@@ -238,7 +238,7 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
             resolver.registerContentObserver(Settings.System.CONTENT_URI, true, mFormatChangeObserver);
         }
 
-        private void unregisterObserver() {
+        private void unregisterTimeFormatObserver() {
             if (!mRegisteredFormatChangeObserver) {
                 return;
             }
