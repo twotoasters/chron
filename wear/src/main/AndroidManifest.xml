@@ -36,12 +36,12 @@
             <meta-data
                 android:name="com.google.android.wearable.watchface.preview"
                 android:resource="@drawable/preview" />
-            <meta-data
-                android:name="com.google.android.wearable.watchface.companionConfigurationAction"
-                android:value="com.twotoasters.chron.CONFIG_CHRON" />
-            <meta-data
-                android:name="com.google.android.wearable.watchface.wearableConfigurationAction"
-                android:value="com.twotoasters.chron.CONFIG_CHRON" />
+            <!--<meta-data-->
+                <!--android:name="com.google.android.wearable.watchface.companionConfigurationAction"-->
+                <!--android:value="com.twotoasters.chron.CONFIG_CHRON" />-->
+            <!--<meta-data-->
+                <!--android:name="com.google.android.wearable.watchface.wearableConfigurationAction"-->
+                <!--android:value="com.twotoasters.chron.CONFIG_CHRON" />-->
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
                 <category android:name="com.google.android.wearable.watchface.category.WATCH_FACE" />
