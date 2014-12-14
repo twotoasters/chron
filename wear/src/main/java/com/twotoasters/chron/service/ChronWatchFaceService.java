@@ -35,13 +35,10 @@ import com.twotoasters.chron.common.Constants;
 import com.twotoasters.chron.common.Utils;
 
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 import timber.log.Timber;
 
 public class ChronWatchFaceService extends CanvasWatchFaceService {
-
-    private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(1);
 
     @Override
     public CanvasWatchFaceService.Engine onCreateEngine() {
@@ -51,21 +48,19 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
     class WatchfaceEngine extends Engine implements DataApi.DataListener,
             GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+        private static final long INTERACTIVE_UPDATE_RATE_MS = 1000;
         private static final int MSG_UPDATE_TIME = 0;
 
-        private ChronWatch chronWatch;
-
-        /** Handler to update the time once a second in interactive mode. */
+        /** Handler to update the time periodically in interactive mode. */
         final Handler mUpdateTimeHandler = new Handler() {
             @Override
             public void handleMessage(Message message) {
                 switch (message.what) {
                     case MSG_UPDATE_TIME:
                         invalidate();
-                        if (isVisible()) {
+                        if (shouldTimerBeRunning()) {
                             long timeMs = System.currentTimeMillis();
-                            long delayMs = INTERACTIVE_UPDATE_RATE_MS
-                                    - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
+                            long delayMs = INTERACTIVE_UPDATE_RATE_MS - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
                             mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
                         }
                         break;
@@ -101,12 +96,7 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
         boolean mRegisteredFormatChangeObserver = false;
 
         GoogleApiClient mGoogleApiClient;
-
-        /**
-         * Whether the display supports fewer bits for each color in ambient mode. When true, we
-         * disable anti-aliasing in ambient mode.
-         */
-        boolean mLowBitAmbient;
+        ChronWatch chronWatch;
 
         @Override
         public void onCreate(SurfaceHolder holder) {
@@ -151,18 +141,59 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
         @Override
         public void onPropertiesChanged(Bundle properties) {
             super.onPropertiesChanged(properties);
-            mLowBitAmbient = properties.getBoolean(PROPERTY_LOW_BIT_AMBIENT, false);
+            boolean uiUpdated = false;
 
-            // TODO: implement this
+            boolean burnInProtection = properties.getBoolean(PROPERTY_BURN_IN_PROTECTION, false);
+            if (chronWatch.isBurnInProtection() != burnInProtection) {
+                chronWatch.setBurnInProtection(burnInProtection);
+                uiUpdated = true;
+            }
+
+            boolean lowBitAmbient = properties.getBoolean(PROPERTY_LOW_BIT_AMBIENT, false);
+            if (chronWatch.isLowBitAmbient() != lowBitAmbient) {
+                chronWatch.setLowBitAmbient(lowBitAmbient);
+                uiUpdated = true;
+                chronWatch.updatePaintAntiAliasFlag(!(chronWatch.isLowBitAmbient() && chronWatch.isAmbient()));
+            }
+
+            if (uiUpdated) {
+                invalidate();
+            }
+
+            Timber.d("onPropertiesChanged: burn-in protection = %b, low-bit ambient = %b", burnInProtection, lowBitAmbient);
         }
 
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
             super.onAmbientModeChanged(inAmbientMode);
             if (chronWatch.isAmbient() != inAmbientMode) {
-                chronWatch.setAmbient(inAmbientMode); // TODO: implement this
+                chronWatch.setAmbient(inAmbientMode);
+                chronWatch.updatePaintAntiAliasFlag(!(chronWatch.isLowBitAmbient() && chronWatch.isAmbient()));
                 invalidate();
             }
+
+            // Whether the timer should be running depends on whether we're visible (as well as
+            // whether we're in ambient mode), so we may need to start or stop the timer.
+            updateTimer();
+        }
+
+        /**
+         * Starts the {@link #mUpdateTimeHandler} timer if it should be running and isn't currently
+         * or stops it if it shouldn't be running but currently is.
+         */
+        private void updateTimer() {
+            mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
+            if (shouldTimerBeRunning()) {
+                mUpdateTimeHandler.sendEmptyMessage(MSG_UPDATE_TIME);
+            }
+        }
+
+        /**
+         * Returns whether the {@link #mUpdateTimeHandler} timer should be running. The timer should
+         * only run when we're visible and in interactive mode.
+         */
+        private boolean shouldTimerBeRunning() {
+            return isVisible() && !isInAmbientMode();
         }
 
         @Override
@@ -175,11 +206,6 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
         public void onDraw(Canvas canvas, Rect bounds) {
             chronWatch.setTime(System.currentTimeMillis());
             chronWatch.draw(canvas);
-
-            // Draw every frame as long as we're visible.
-            if (isVisible()) {
-                invalidate();
-            }
         }
 
         @Override
@@ -197,11 +223,8 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
                 chronWatch.clearTime(TimeZone.getDefault().getID());
                 chronWatch.setTimeToNow();
                 chronWatch.set24HourModeEnabled(DateFormat.is24HourFormat(ChronWatchFaceService.this));
-
-                invalidate(); // for sweepSeconds
             } else {
                 Timber.d("became invisible");
-                mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
                 unregisterTimeZoneReceiver();
                 unregisterTimeFormatObserver();
 
@@ -210,6 +233,10 @@ public class ChronWatchFaceService extends CanvasWatchFaceService {
                     mGoogleApiClient.disconnect();
                 }
             }
+
+            // Whether the timer should be running depends on whether we're visible (as well as
+            // whether we're in ambient mode), so we may need to start or stop the timer.
+            updateTimer();
         }
 
         private void registerTimeZoneReceiver() {

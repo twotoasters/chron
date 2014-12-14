@@ -161,6 +161,20 @@ public class ChronWatch {
         innerMinorTickPaint = new Paint(innerMajorTickPaint);
     }
 
+    public void updatePaintAntiAliasFlag(boolean antiAlias) {
+        minTimePaint.setAntiAlias(antiAlias);
+        hourTimePaint.setAntiAlias(antiAlias);
+        hourOutlinePaint.setAntiAlias(antiAlias);
+        datePaint.setAntiAlias(antiAlias);
+        hourRingPaint.setAntiAlias(antiAlias);
+        minRingPaint.setAntiAlias(antiAlias);
+        secRingPaint.setAntiAlias(antiAlias);
+        outerMajorTickPaint.setAntiAlias(antiAlias);
+        outerMinorTickPaint.setAntiAlias(antiAlias);
+        innerMajorTickPaint.setAntiAlias(antiAlias);
+        innerMinorTickPaint.setAntiAlias(antiAlias);
+    }
+
     private void calculateDimensions() {
         float smallestDimen = Math.min(width, height);
         float outerTickMarkLength = smallestDimen * 0.0406f;
@@ -428,6 +442,10 @@ public class ChronWatch {
         return mVisible;
     }
 
+    public boolean isAmbient() {
+        return mAmbient;
+    }
+
     public void setAmbient(boolean ambient) {
         boolean updateResources = mAmbient != ambient;
         mAmbient = ambient;
@@ -437,8 +455,20 @@ public class ChronWatch {
         }
     }
 
-    public boolean isAmbient() {
-        return mAmbient;
+    public boolean isLowBitAmbient() {
+        return mLowBitAmbient;
+    }
+
+    public void setLowBitAmbient(boolean lowBitAmbient) {
+        mLowBitAmbient = lowBitAmbient;
+    }
+
+    public boolean isBurnInProtection() {
+        return mBurnInProtection;
+    }
+
+    public void setBurnInProtection(boolean burnInProtection) {
+        mBurnInProtection = burnInProtection;
     }
 
     public void setRound(boolean round) {
