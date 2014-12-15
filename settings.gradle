@@ -1,1 +1,1 @@
-include ':common', ':wear', ':mobile'
+include ':submodules:watchface-gears:library', ':common', ':wear', ':mobile'
