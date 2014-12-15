@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="font_share_tech_mono_regular">fonts/ShareTechMono-Regular.ttf</string>
+    <string name="config_label">Chron watch face configuration</string>
+
+    <string name="color">Color</string>
 </resources>

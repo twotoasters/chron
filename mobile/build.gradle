@@ -1,9 +1,20 @@
+buildscript {
+    dependencies {
+        classpath 'com.jakewharton.hugo:hugo-plugin:1.1.+'
+    }
+}
+
 apply plugin: 'com.android.application'
+apply plugin: 'hugo'
 
 def versionMajor = Integer.parseInt(APP_VERSION_MAJOR)
 def versionMinor = Integer.parseInt(APP_VERSION_MINOR)
 def versionPatch = Integer.parseInt(APP_VERSION_PATCH)
 def versionBuild = Integer.parseInt(APP_VERSION_BUILD)
+
+repositories {
+    jcenter()
+}
 
 android {
     compileSdkVersion Integer.parseInt(project.ANDROID_BUILD_SDK_VERSION)
@@ -18,12 +29,14 @@ android {
         manifestPlaceholders = [ watchfaceName:project.WATCHFACE_NAME, appName:project.APP_NAME ]
 
         applicationVariants.all { variant ->
-            def watchfaceName = project.WATCHFACE_NAME.replace(" ", "").toLowerCase()
-            def file = variant.outputFile
-            def suffix = defaultConfig.versionName
-            def outputFile = file.name.replace(".apk", "-" + suffix + ".apk")
-            outputFile = outputFile.replace("mobile", watchfaceName)
-            variant.outputFile = new File(file.parent, outputFile)
+            variant.outputs.each { output ->
+                def watchfaceName = project.WATCHFACE_NAME.replace(" ", "").toLowerCase()
+                def file = output.outputFile
+                def suffix = defaultConfig.versionName
+                def outputFile = file.name.replace(".apk", "-" + suffix + ".apk")
+                outputFile = outputFile.replace("mobile", watchfaceName)
+                output.outputFile = new File(file.parent, outputFile)
+            }
         }
     }
 
@@ -43,7 +56,7 @@ android {
 
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled false
             signingConfig signingConfigs.release
         }
     }
@@ -51,6 +64,13 @@ android {
 
 dependencies {
     wearApp project(':wear')
+    compile project(':common')
+    compile files('libs/GLWallpaperService.jar')
+    compile 'com.afollestad:material-dialogs:0.3.0'
+    compile 'com.android.support:appcompat-v7:21.0.0'
+    compile 'com.google.android.support:wearable-support:1.1+:@aar'
+    compile 'com.google.android.gms:play-services-wearable:+'
+    compile 'com.android.support:support-annotations:21.0.0'
 }
 
-apply from: 'https://raw.github.com/twotoasters/HelloAndroidStudio/master/gradle/keystore.gradle'
+//apply from: 'https://raw.github.com/twotoasters/HelloAndroidStudio/master/gradle/keystore.gradle'

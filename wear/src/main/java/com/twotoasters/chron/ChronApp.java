@@ -1,14 +1,16 @@
 package com.twotoasters.chron;
 
-import com.twotoasters.watchface.gears.GearsWatchfaceApp;
+import android.app.Application;
 
 import timber.log.Timber;
 import timber.log.Timber.DebugTree;
 
-public class WatchfaceApp extends GearsWatchfaceApp {
+public class ChronApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Timber.plant(new DebugTree());
+        if (BuildConfig.DEBUG) {
+            Timber.plant(new DebugTree());
+        }
     }
 }

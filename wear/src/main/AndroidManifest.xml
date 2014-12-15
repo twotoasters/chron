@@ -3,15 +3,19 @@
     package="com.twotoasters.chron">
 
     <uses-feature android:name="android.hardware.type.watch" />
+
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.google.android.permission.PROVIDE_BACKGROUND" />
 
     <application
         android:label="${appName}"
-        android:name=".WatchfaceApp">
+        android:name=".ChronApp">
+
+        <!-- Legacy watchface -->
         <activity
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
             android:name=".activity.WatchfaceActivity"
-            android:label="${watchfaceName}"
+            android:label="${watchfaceName} (Old)"
             android:taskAffinity=""
             android:allowEmbedded="true" >
 
@@ -22,6 +26,50 @@
                 <category android:name="com.google.android.clockwork.home.category.HOME_BACKGROUND" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".activity.ChronWearConfigActivity"
+            android:label="@string/config_label">
+            <intent-filter>
+                <action android:name="com.twotoasters.chron.CONFIG_CHRON" />
+                <category android:name="com.google.android.wearable.watchface.category.WEARABLE_CONFIGURATION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <meta-data android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <service
+            android:name=".service.ChronWatchFaceService"
+            android:allowEmbedded="true"
+            android:label="${watchfaceName}"
+            android:taskAffinity=""
+            android:permission="android.permission.BIND_WALLPAPER">
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/watch_face" />
+            <meta-data
+                android:name="com.google.android.wearable.watchface.preview"
+                android:resource="@drawable/preview" />
+            <!--<meta-data-->
+                <!--android:name="com.google.android.wearable.watchface.companionConfigurationAction"-->
+                <!--android:value="com.twotoasters.chron.CONFIG_CHRON" />-->
+            <!--<meta-data-->
+                <!--android:name="com.google.android.wearable.watchface.wearableConfigurationAction"-->
+                <!--android:value="com.twotoasters.chron.CONFIG_CHRON" />-->
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+                <category android:name="com.google.android.wearable.watchface.category.WATCH_FACE" />
+            </intent-filter>
+        </service>
+
+        <service android:name=".service.ChronWatchFaceConfigListenerService">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.BIND_LISTENER" />
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

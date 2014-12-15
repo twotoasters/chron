@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="font_size_time">23sp</dimen>
+    <dimen name="font_size_date">12sp</dimen>
+    <dimen name="time_vert_offset">8dp</dimen>
+    <dimen name="hour_center_offset">40.5dp</dimen><!-- dist to hour container center from watch center on 186.666 x 186.666 dp square -->
+    <dimen name="second_center_offset">40.5dp</dimen><!-- dist to second container center from watch center on 186.666 x 186.666 dp square -->
+    <dimen name="date_center_offset">41dp</dimen><!-- dist to date container center from watch center on 186.666 x 186.666 dp square -->
+    <dimen name="text_shadow_radius">3dp</dimen>
+    <dimen name="ring_shadow_radius">2dp</dimen>
+</resources>
