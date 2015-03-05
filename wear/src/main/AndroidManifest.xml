@@ -11,22 +11,6 @@
         android:label="${appName}"
         android:name=".ChronApp">
 
-        <!-- Legacy watchface -->
-        <activity
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
-            android:name=".activity.WatchfaceActivity"
-            android:label="${watchfaceName} (Old)"
-            android:taskAffinity=""
-            android:allowEmbedded="true" >
-
-            <meta-data android:name="com.google.android.clockwork.home.preview" android:resource="@drawable/preview" />
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="com.google.android.clockwork.home.category.HOME_BACKGROUND" />
-            </intent-filter>
-        </activity>
-
         <activity
             android:name=".activity.ChronWearConfigActivity"
             android:label="@string/config_label">
@@ -43,7 +27,7 @@
         <service
             android:name=".service.ChronWatchFaceService"
             android:allowEmbedded="true"
-            android:label="${watchfaceName}"
+            android:label="Chron Watch Face"
             android:taskAffinity=""
             android:permission="android.permission.BIND_WALLPAPER">
             <meta-data

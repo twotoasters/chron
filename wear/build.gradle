@@ -60,7 +60,6 @@ android {
 
 dependencies {
     compile project(':common')
-    compile project(':submodules:watchface-gears:library')
     compile 'com.google.android.support:wearable:1.1.+'
     compile 'com.google.android.gms:play-services-wearable:+'
     compile 'com.android.support:recyclerview-v7:21.0.0'
