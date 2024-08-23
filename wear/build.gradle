@@ -59,10 +59,10 @@ android {
 }
 
 dependencies {
-    compile project(':common')
-    compile 'com.google.android.support:wearable:1.1.+'
-    compile 'com.google.android.gms:play-services-wearable:+'
-    compile 'com.android.support:recyclerview-v7:21.0.0'
+    implementation project(':common')
+    implementation 'com.google.android.support:wearable:1.1.+'
+    implementation 'com.google.android.gms:play-services-wearable:+'
+    implementation 'com.android.support:recyclerview-v7:21.0.0'
 }
 
 apply from: 'https://raw.github.com/twotoasters/HelloAndroidStudio/master/gradle/keystore.gradle'
